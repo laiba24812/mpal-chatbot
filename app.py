@@ -127,6 +127,39 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# Sidebar
+with st.sidebar:
+    st.image("https://www.eng.mcmaster.ca/wp-content/uploads/2022/09/MMRI-Logo.png", width=200)
+    st.markdown("### 📞 Contact MMRI")
+    st.markdown("""
+    **Address:**  
+    230 Longwood Rd S  
+    Hamilton, ON L8P 0A6
+    
+    **Phone:** 905-525-9140  
+    **Hours:** Mon-Fri 8:30am-4:30pm  
+    **Email:** mmri-ad@mcmaster.ca
+    """)
+    
+    st.markdown("---")
+    st.markdown("### 💡 Suggested Questions")
+    
+    if st.button("What does MPAL do?"):
+        st.session_state.starter = "What does MPAL do?"
+    if st.button("What facilities are available?"):
+        st.session_state.starter = "What facilities are available?"
+    if st.button("How do I contact MMRI?"):
+        st.session_state.starter = "How do I contact MMRI?"
+    if st.button("What industries do you work with?"):
+        st.session_state.starter = "What industries do you work with?"
+    if st.button("What training programs are offered?"):
+        st.session_state.starter = "What training programs are offered?"
+    
+    st.markdown("---")
+    if st.button("🗑️ Clear Chat"):
+        st.session_state.conversation = []
+        st.rerun()
+
 # System prompt
 SYSTEM_PROMPT = f"""You are a helpful assistant for the Materials Property Assessment Lab (MPAL) 
 at the McMaster Manufacturing Research Institute (MMRI). Answer questions accurately based on the following information:
