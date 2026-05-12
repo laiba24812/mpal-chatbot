@@ -248,7 +248,7 @@ if user_input:
 
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
-        response_placeholder.write("MPAL Assistant is thinking... 🔬")
+        response_placeholder.write("MMRI Assistant is thinking... 🔬")
         full_response = ""
         
         with client.messages.stream(
