@@ -1,7 +1,8 @@
-import streamlit as st
-import anthropic
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-client = anthropic.Anthropic(api_key="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")
+client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 # Page config
 st.set_page_config(
