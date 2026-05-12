@@ -42,7 +42,7 @@ client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 # Page config
 st.set_page_config(
-    page_title="MPAL Lab Assistant",
+    page_title="MMRI Lab Assistant",
     page_icon="🔬",
     layout="centered"
 )
@@ -121,7 +121,7 @@ st.markdown("""
 st.markdown("""
     <div class="header">
         <div>
-            <h1>🔬 MPAL Lab Assistant</h1>
+            <h1>🔬 MMRI Lab Assistant</h1>
             <p>McMaster Manufacturing Research Institute · Ask me anything about the lab</p>
         </div>
     </div>
