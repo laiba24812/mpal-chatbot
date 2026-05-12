@@ -2,6 +2,42 @@ import os
 import anthropic
 import streamlit as st
 
+import requests
+from bs4 import BeautifulSoup
+
+def scrape_mmri_page(url):
+    try:
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        # Remove scripts and styles
+        for script in soup(["script", "style", "nav", "footer", "header"]):
+            script.decompose()
+        text = soup.get_text(separator=' ', strip=True)
+        # Clean up whitespace
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        return ' '.join(lines)[:3000]  # Limit to 3000 chars per page
+    except:
+        return ""
+
+# Scrape MMRI pages on startup
+@st.cache_data
+def get_mmri_content():
+    urls = [
+        "https://www.eng.mcmaster.ca/mmri-home/",
+        "https://www.eng.mcmaster.ca/mmri-home/our-focus/",
+        "https://www.eng.mcmaster.ca/mmri-home/facilities/",
+        "https://www.eng.mcmaster.ca/mmri-home/research/",
+        "https://www.eng.mcmaster.ca/mmri-home/contact/",
+    ]
+    content = ""
+    for url in urls:
+        page_content = scrape_mmri_page(url)
+        if page_content:
+            content += f"\n\nFrom {url}:\n{page_content}"
+    return content
+
+mmri_content = get_mmri_content()
+
 client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 # Page config
@@ -92,9 +128,12 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # System prompt
-SYSTEM_PROMPT = """You are a helpful assistant for the Materials Property Assessment Lab (MPAL) 
+SYSTEM_PROMPT = f"""You are a helpful assistant for the Materials Property Assessment Lab (MPAL) 
 at the McMaster Manufacturing Research Institute (MMRI). Answer questions accurately based on the following information:
 
+{mmri_content}
+
+If asked something not covered here, say you'll check with the lab team and direct them to contact MMRI directly.
 ABOUT THE MMRI:
 - Full name: McMaster Manufacturing Research Institute (MMRI)
 - Located at: 230 Longwood Road South, Hamilton, Ontario, Canada, L8P 0A6 (McMaster Innovation Park)
