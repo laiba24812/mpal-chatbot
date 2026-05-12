@@ -1,9 +1,8 @@
 import os
 import anthropic
-from dotenv import load_dotenv
-load_dotenv()
+import streamlit as st
 
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 # Page config
 st.set_page_config(
