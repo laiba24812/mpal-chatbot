@@ -1,0 +1,120 @@
+MMRI Weekly Clockify Summary - May 20, 2026
+
+Hours by Employee:
+  - Brady Semple: 304.0 hours
+  - Mahdi: 277.2 hours
+  - Kristin Bennett: 273.8 hours
+  - Darren Feenstra: 237.9 hours
+  - Patrick Chin: 214.5 hours
+  - Laiba Yousafzai: 90.0 hours
+
+Project Breakdown:
+  - Brady Semple | APOGEE1: 7.8 hours
+  - Brady Semple | AUTO1: 14.5 hours
+  - Brady Semple | BAUER1: 1.2 hours
+  - Brady Semple | CAPPA1- Cappa-D Support: 1.0 hours
+  - Brady Semple | EXO1: 2.8 hours
+  - Brady Semple | FIBER1: 0.8 hours
+  - Brady Semple | HARVEST1: 1.5 hours
+  - Brady Semple | HARVEST2: 2.8 hours
+  - Brady Semple | IMAGIN7: 4.3 hours
+  - Brady Semple | IMIRGE2: 0.8 hours
+  - Brady Semple | IMP1: 0.2 hours
+  - Brady Semple | JSQ1: 3.0 hours
+  - Brady Semple | KWOOD1: 0.5 hours
+  - Brady Semple | MERC1: 0.8 hours
+  - Brady Semple | MMRI1: 107.2 hours
+  - Brady Semple | MMRI4: 4.5 hours
+  - Brady Semple | MMRI6: 1.5 hours
+  - Brady Semple | MOLD2: 0.5 hours
+  - Brady Semple | MRN1: 2.5 hours
+  - Brady Semple | Maryam1: 1.8 hours
+  - Brady Semple | OPENHOUSE1: 19.0 hours
+  - Brady Semple | OPTIM1: 1.0 hours
+  - Brady Semple | ORF3: 0.5 hours
+  - Brady Semple | PRESSLOCK2: 2.0 hours
+  - Brady Semple | SKATE11: 2.8 hours
+  - Brady Semple | SONAMI0: 4.2 hours
+  - Brady Semple | SORSYS1: 30.2 hours
+  - Brady Semple | STAT0: 8.0 hours
+  - Brady Semple | STITCH1: 7.0 hours
+  - Brady Semple | STOCK1: 1.2 hours
+  - Brady Semple | TERAGO2: 0.5 hours
+  - Brady Semple | THK6: 20.7 hours
+  - Brady Semple | THORDON1: 1.5 hours
+  - Brady Semple | TRAIN1: General Training Activity: 4.5 hours
+  - Brady Semple | TRIPLE1: 2.5 hours
+  - Brady Semple | TYCOS10: 0.5 hours
+  - Brady Semple | TYCOS12: 2.0 hours
+  - Brady Semple | TYCOS16: 1.0 hours
+  - Brady Semple | TYCOS17: 10.8 hours
+  - Brady Semple | TYCOS20: 1.8 hours
+  - Brady Semple | TYCOS3: 0.5 hours
+  - Brady Semple | TYCOS4: 13.5 hours
+  - Brady Semple | VACATION1: 8.0 hours
+  - Brady Semple | WILL1: 0.5 hours
+  - Darren Feenstra | ALCHEMY6: 1.7 hours
+  - Darren Feenstra | APOGEE1: 17.6 hours
+  - Darren Feenstra | CAMC1: 1.3 hours
+  - Darren Feenstra | CNL1: 0.1 hours
+  - Darren Feenstra | EXHILAR1: 0.1 hours
+  - Darren Feenstra | IMP1: 0.3 hours
+  - Darren Feenstra | INGERSO1: 4.2 hours
+  - Darren Feenstra | MEVOTECH: 0.1 hours
+  - Darren Feenstra | MEVOTECH17: 0.8 hours
+  - Darren Feenstra | MMRI1: 6.8 hours
+  - Darren Feenstra | MMRI2: 4.5 hours
+  - Darren Feenstra | MMRI6: 188.7 hours
+  - Darren Feenstra | NSERC1: 0.6 hours
+  - Darren Feenstra | ORF3: 2.3 hours
+  - Darren Feenstra | PRESSLOCK2: 4.7 hours
+  - Darren Feenstra | SIGNA1: 2.8 hours
+  - Darren Feenstra | TYCOS20: 1.4 hours
+  - Kristin Bennett | AUTO1: 2.8 hours
+  - Kristin Bennett | CAMB1: 4.0 hours
+  - Kristin Bennett | INCORPAI1: 4.5 hours
+  - Kristin Bennett | INTER1: 1.5 hours
+  - Kristin Bennett | MCS1: 1.5 hours
+  - Kristin Bennett | MMRI1: 13.5 hours
+  - Kristin Bennett | MONO1: 4.0 hours
+  - Kristin Bennett | ORF0: 93.5 hours
+  - Kristin Bennett | ORF3: 77.8 hours
+  - Kristin Bennett | SICKDAY: 28.0 hours
+  - Kristin Bennett | STAT0: 14.0 hours
+  - Kristin Bennett | THORDON1: 10.8 hours
+  - Kristin Bennett | TRIPLE1: 1.0 hours
+  - Kristin Bennett | TYCOS12: 1.0 hours
+  - Kristin Bennett | TYCOS21: 1.5 hours
+  - Kristin Bennett | WGPRO1: 4.5 hours
+  - Kristin Bennett | WILL1: 1.0 hours
+  - Kristin Bennett | YARL1: 9.0 hours
+  - Laiba Yousafzai | MMRI1: 75.0 hours
+  - Laiba Yousafzai | MMRI6: 7.5 hours
+  - Laiba Yousafzai | STAT0: 7.5 hours
+  - Mahdi | ALCHEMY6: 7.0 hours
+  - Mahdi | APOGEE1: 9.4 hours
+  - Mahdi | AVANTI3: 2.0 hours
+  - Mahdi | CNL1: 16.8 hours
+  - Mahdi | MEVOTECH: 0.8 hours
+  - Mahdi | MEVOTECH17: 61.1 hours
+  - Mahdi | MMRI1: 2.5 hours
+  - Mahdi | MMRI4: 12.7 hours
+  - Mahdi | MMRI6: 122.3 hours
+  - Mahdi | MOLD2: 0.8 hours
+  - Mahdi | SICKDAY: 14.0 hours
+  - Mahdi | SIGNA1: 6.9 hours
+  - Mahdi | SNOW0: 7.0 hours
+  - Mahdi | STAT0: 14.0 hours
+  - Patrick Chin | AUTO1: 4.0 hours
+  - Patrick Chin | CAMB1: 3.5 hours
+  - Patrick Chin | INCORPAI1: 15.0 hours
+  - Patrick Chin | MMRI-Internal Projects: 35.5 hours
+  - Patrick Chin | MONO1: 5.0 hours
+  - Patrick Chin | ORF0: 19.2 hours
+  - Patrick Chin | ORF3: 63.0 hours
+  - Patrick Chin | SICKDAY: 10.0 hours
+  - Patrick Chin | STAT0: 7.5 hours
+  - Patrick Chin | TRAIN11: Grand Erie High Schools: 1.2 hours
+  - Patrick Chin | TYCOS12: 30.5 hours
+  - Patrick Chin | VACATION1: 7.5 hours
+  - Patrick Chin | YARL1: 12.5 hours

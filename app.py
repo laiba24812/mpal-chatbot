@@ -1,7 +1,8 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import anthropic
 import streamlit as st
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -9,17 +10,14 @@ def scrape_mmri_page(url):
     try:
         response = requests.get(url, timeout=10)
         soup = BeautifulSoup(response.content, 'html.parser')
-        # Remove scripts and styles
         for script in soup(["script", "style", "nav", "footer", "header"]):
             script.decompose()
         text = soup.get_text(separator=' ', strip=True)
-        # Clean up whitespace
         lines = [line.strip() for line in text.splitlines() if line.strip()]
-        return ' '.join(lines)[:3000]  # Limit to 3000 chars per page
+        return ' '.join(lines)[:3000]
     except:
         return ""
 
-# Scrape MMRI pages on startup
 @st.cache_data
 def get_mmri_content():
     urls = [
@@ -38,24 +36,19 @@ def get_mmri_content():
 
 mmri_content = get_mmri_content()
 
-client = anthropic.Anthropic(api_key=st.secrets["ANTHROPIC_API_KEY"])
+client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
-# Page config
 st.set_page_config(
-    page_title="MMRI Lab Assistant",
+    page_title="MMRI Assistant",
     page_icon="🔬",
     layout="centered"
 )
 
-# McMaster branding CSS
 st.markdown("""
     <style>
-        /* Background */
         .stApp {
             background-color: #1a1a1a;
         }
-        
-        /* Header bar */
         .header {
             background-color: #7A003C;
             padding: 20px 30px;
@@ -77,22 +70,16 @@ st.markdown("""
             font-size: 13px;
             opacity: 0.85;
         }
-
-        /* Chat messages */
         .stChatMessage {
             background-color: #2a2a2a;
             border-radius: 10px;
             padding: 10px;
             margin-bottom: 8px;
         }
-
-        /* Input box */
         .stChatInputContainer {
             border-top: 2px solid #7A003C;
             padding-top: 10px;
         }
-
-        /* Suggestion buttons */
         .stButton > button {
             background-color: #2a2a2a;
             color: #FDBF57;
@@ -106,8 +93,6 @@ st.markdown("""
             background-color: #7A003C;
             color: white;
         }
-
-        /* Footer */
         .footer {
             text-align: center;
             color: #666;
@@ -117,17 +102,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Header
 st.markdown("""
     <div class="header">
         <div>
-            <h1>🔬 MMRI Lab Assistant</h1>
-            <p>McMaster Manufacturing Research Institute · Ask me anything about the lab</p>
+            <h1>🔬 MMRI Assistant</h1>
+            <p>McMaster Manufacturing Research Institute · Ask me anything about MMRI</p>
         </div>
     </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
 with st.sidebar:
     st.image("https://www.eng.mcmaster.ca/wp-content/uploads/2022/09/MMRI-Logo.png", width=200)
     st.markdown("### 📞 Contact MMRI")
@@ -140,33 +123,58 @@ with st.sidebar:
     **Hours:** Mon-Fri 8:30am-4:30pm  
     **Email:** mmri-ad@mcmaster.ca
     """)
-    
+
     st.markdown("---")
     st.markdown("### 💡 Suggested Questions")
-    
-    if st.button("What does MPAL do?"):
-        st.session_state.starter = "What does MPAL do?"
+
+    if st.button("What does MMRI do?"):
+        st.session_state.starter = "What does MMRI do?"
     if st.button("What facilities are available?"):
         st.session_state.starter = "What facilities are available?"
     if st.button("How do I contact MMRI?"):
         st.session_state.starter = "How do I contact MMRI?"
     if st.button("What industries do you work with?"):
         st.session_state.starter = "What industries do you work with?"
-    if st.button("What training programs are offered?"):
-        st.session_state.starter = "What training programs are offered?"
+    if st.button("What condition monitoring services do you offer?"):
+        st.session_state.starter = "What condition monitoring services do you offer?"
+
+    st.markdown("---")
+    st.markdown("### 🏭 MPAL Team")
+    st.markdown("""
+    **Head:** Darren Feenstra
     
+    **Team Members:**
+    - Laiba Yousafzai
+    - Mahdi
+    """)
+
     st.markdown("---")
     if st.button("🗑️ Clear Chat"):
         st.session_state.conversation = []
         st.rerun()
 
-# System prompt
-SYSTEM_PROMPT = f"""You are a helpful assistant for the Materials Property Assessment Lab (MPAL) 
-at the McMaster Manufacturing Research Institute (MMRI). Answer questions accurately based on the following information:
+SYSTEM_PROMPT = f"""You are a helpful assistant for the McMaster Manufacturing Research Institute (MMRI). Answer questions accurately based on the following information:
 
 {mmri_content}
 
-If asked something not covered here, say you'll check with the lab team and direct them to contact MMRI directly.
+CONDITION MONITORING CAPABILITIES:
+The MMRI specializes in advanced condition monitoring methods including:
+- Sensor Selection & Data Acquisition: FMEA support, sensor selection (vibration, acoustic, current, force), lab testing prior to production, data acquisition system design
+- Data Analysis: baseline dataset collection, anomaly detection, fault signature identification, asset-specific threshold setting, data processing pipelines, visualization tools
+- Experimental Design: controlled lab testing under healthy and faulty conditions, design of experiments, quantitative comparison of materials and components
+- Application Areas: robot condition monitoring, CNC machining and metal forming, coating/surfacing quality monitoring, secondary operations (deburring, finishing), assembly and joining processes
+
+CLIENT INTAKE - when a company asks about starting a condition monitoring project, ask these questions one at a time in a friendly conversational way:
+1. What assets or processes are the primary focus? (specific machines, production lines)
+2. What business problem are you trying to solve? (unplanned downtime, quality losses, maintenance costs)
+3. What are the impacts when these assets fail?
+4. How are issues currently detected? (operator observation, alarms, routine maintenance)
+5. What data are you already collecting from the production floor?
+6. What decisions do you want this system to enable?
+7. How do you expect users to interact with outputs? (dashboards, alerts, KPIs)
+8. Are there IT or cybersecurity constraints?
+9. What is the intended scope and timeline?
+
 ABOUT THE MMRI:
 - Full name: McMaster Manufacturing Research Institute (MMRI)
 - Located at: 230 Longwood Road South, Hamilton, Ontario, Canada, L8P 0A6 (McMaster Innovation Park)
@@ -204,39 +212,33 @@ STUDY & TRAINING:
 
 If asked something not covered here, say you'll check with the lab team and direct them to contact MMRI directly."""
 
-# Initialize conversation
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
 
-# Suggestion buttons (only show if no conversation yet)
 if not st.session_state.conversation:
     st.markdown("**💡 Try asking:**")
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("What does MPAL do?"):
-            st.session_state.starter = "What does MPAL do?"
+        if st.button("What does MMRI do?"):
+            st.session_state.starter = "What does MMRI do?"
     with col2:
         if st.button("Where is MMRI located?"):
             st.session_state.starter = "Where is MMRI located?"
     with col3:
-        if st.button("What industries do you work with?"):
-            st.session_state.starter = "What industries do you work with?"
+        if st.button("What condition monitoring services do you offer?"):
+            st.session_state.starter = "What condition monitoring services do you offer?"
 
-# Display conversation
 for message in st.session_state.conversation:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-# Always show chat input
-user_input = st.chat_input("Ask a question about MPAL or MMRI...")
+user_input = st.chat_input("Ask a question about MMRI...")
 
-# Handle starter button clicks
-if not user_input and "starter" in st.session_state and st.session_state.starter:
+if "starter" in st.session_state and st.session_state.starter:
     user_input = st.session_state.starter
     st.session_state.starter = None
+    st.rerun()
 
-# Process input
-# Process input
 if user_input:
     st.session_state.conversation.append({
         "role": "user",
@@ -250,7 +252,7 @@ if user_input:
         response_placeholder = st.empty()
         response_placeholder.write("MMRI Assistant is thinking... 🔬")
         full_response = ""
-        
+
         with client.messages.stream(
             model="claude-opus-4-6",
             max_tokens=1024,
@@ -267,7 +269,6 @@ if user_input:
         "content": full_response
     })
 
-# Footer
 st.markdown("""
     <div class="footer">
         McMaster Manufacturing Research Institute · 230 Longwood Rd S, Hamilton ON · 905-525-9140

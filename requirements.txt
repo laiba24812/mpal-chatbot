@@ -3,3 +3,4 @@ python-dotenv
 streamlit
 requests
 beautifulsoup4
+openpyxl
