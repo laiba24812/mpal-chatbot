@@ -46,9 +46,7 @@ st.set_page_config(
 
 st.markdown("""
     <style>
-        .stApp {
-            background-color: #1a1a1a;
-        }
+        .stApp { background-color: #1a1a1a; }
         .header {
             background-color: #7A003C;
             padding: 20px 30px;
@@ -58,28 +56,10 @@ st.markdown("""
             align-items: center;
             gap: 15px;
         }
-        .header h1 {
-            color: #FDBF57;
-            font-size: 24px;
-            margin: 0;
-            font-family: 'Georgia', serif;
-        }
-        .header p {
-            color: #ffffff;
-            margin: 0;
-            font-size: 13px;
-            opacity: 0.85;
-        }
-        .stChatMessage {
-            background-color: #2a2a2a;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 8px;
-        }
-        .stChatInputContainer {
-            border-top: 2px solid #7A003C;
-            padding-top: 10px;
-        }
+        .header h1 { color: #FDBF57; font-size: 24px; margin: 0; font-family: 'Georgia', serif; }
+        .header p { color: #ffffff; margin: 0; font-size: 13px; opacity: 0.85; }
+        .stChatMessage { background-color: #2a2a2a; border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+        .stChatInputContainer { border-top: 2px solid #7A003C; padding-top: 10px; }
         .stButton > button {
             background-color: #2a2a2a;
             color: #FDBF57;
@@ -89,16 +69,17 @@ st.markdown("""
             font-size: 13px;
             transition: all 0.2s;
         }
-        .stButton > button:hover {
-            background-color: #7A003C;
-            color: white;
-        }
-        .footer {
-            text-align: center;
-            color: #666;
-            font-size: 12px;
+        .stButton > button:hover { background-color: #7A003C; color: white; }
+        .footer { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+        .handoff-box {
+            background-color: #2a2a2a;
+            border: 1px solid #7A003C;
+            border-radius: 10px;
+            padding: 15px;
             margin-top: 20px;
         }
+        .handoff-box h3 { color: #FDBF57; margin-top: 0; }
+        .handoff-box p { color: #ffffff; margin: 5px 0; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -123,10 +104,8 @@ with st.sidebar:
     **Hours:** Mon-Fri 8:30am-4:30pm  
     **Email:** mmri-ad@mcmaster.ca
     """)
-
     st.markdown("---")
     st.markdown("### 💡 Suggested Questions")
-
     if st.button("What does MMRI do?"):
         st.session_state.starter = "What does MMRI do?"
     if st.button("What facilities are available?"):
@@ -137,7 +116,6 @@ with st.sidebar:
         st.session_state.starter = "What industries do you work with?"
     if st.button("What condition monitoring services do you offer?"):
         st.session_state.starter = "What condition monitoring services do you offer?"
-
     st.markdown("---")
     st.markdown("### 🏭 MPAL Team")
     st.markdown("""
@@ -147,90 +125,80 @@ with st.sidebar:
     - Laiba Yousafzai
     - Mahdi
     """)
-
     st.markdown("---")
     if st.button("🗑️ Clear Chat"):
         st.session_state.conversation = []
+        st.session_state.client_info = {}
+        st.session_state.ready_for_scoping = False
         st.rerun()
 
-SYSTEM_PROMPT = f"""You are a helpful assistant for the McMaster Manufacturing Research Institute (MMRI). Answer questions accurately based on the following information:
+SYSTEM_PROMPT = f"""You are a friendly assistant for the McMaster Manufacturing Research Institute (MMRI). Your job is to help people from industry who have manufacturing problems but may not know how to describe them technically.
 
+Your goal is to:
+1. Make the person feel welcome and understood
+2. Ask simple, friendly questions to understand their problem
+3. Explain in plain language how MMRI can help them
+4. End by summarizing their problem and suggesting next steps
+
+CONVERSATION FLOW:
+- Start by warmly greeting them and asking what kind of manufacturing challenge they are facing
+- Ask one question at a time in plain, friendly language
+- Never use technical jargon like "FMEA", "data acquisition", "assets", "OEE" etc.
+- If they use technical terms, that is fine — but always respond in simple language
+- After 4-5 questions, summarize what you have learned and explain how MMRI can help
+
+QUESTIONS TO ASK (in plain language, one at a time):
+1. "What kind of equipment or process is giving you trouble?"
+2. "What actually happens when things go wrong — does it break down, slow down, make bad parts?"
+3. "How do you usually find out something is wrong — does someone notice, does an alarm go off, or do you only find out after the fact?"
+4. "How often does this happen, and how much does it affect your production?"
+5. "Have you tried anything to fix it so far?"
+
+AFTER COLLECTING INFO:
+- Summarize what they told you in simple terms
+- Explain which MMRI capability can help in plain language
+- Tell them the next step is to connect with the MMRI team and offer to help set that up
+
+MMRI BACKGROUND INFO:
 {mmri_content}
 
 CONDITION MONITORING CAPABILITIES:
-The MMRI specializes in advanced condition monitoring methods including:
-- Sensor Selection & Data Acquisition: FMEA support, sensor selection (vibration, acoustic, current, force), lab testing prior to production, data acquisition system design
-- Data Analysis: baseline dataset collection, anomaly detection, fault signature identification, asset-specific threshold setting, data processing pipelines, visualization tools
-- Experimental Design: controlled lab testing under healthy and faulty conditions, design of experiments, quantitative comparison of materials and components
-- Application Areas: robot condition monitoring, CNC machining and metal forming, coating/surfacing quality monitoring, secondary operations (deburring, finishing), assembly and joining processes
+- MMRI can figure out which sensors to put on equipment to detect problems early
+- MMRI can analyze data from machines to spot patterns before failures happen
+- MMRI tests equipment in the lab first before deploying on the production floor
+- MMRI can monitor robots, CNC machines, motors, gearboxes, and many other types of equipment
+- MMRI builds dashboards and alerts so teams can see what is happening in real time
 
-CLIENT INTAKE - when a company asks about starting a condition monitoring project, ask these questions one at a time in a friendly conversational way:
-1. What assets or processes are the primary focus? (specific machines, production lines)
-2. What business problem are you trying to solve? (unplanned downtime, quality losses, maintenance costs)
-3. What are the impacts when these assets fail?
-4. How are issues currently detected? (operator observation, alarms, routine maintenance)
-5. What data are you already collecting from the production floor?
-6. What decisions do you want this system to enable?
-7. How do you expect users to interact with outputs? (dashboards, alerts, KPIs)
-8. Are there IT or cybersecurity constraints?
-9. What is the intended scope and timeline?
+ABOUT MMRI:
+- Located at 230 Longwood Road South, Hamilton, Ontario (McMaster Innovation Park)
+- 21,000 sq ft facility with 7 research labs
+- Phone: 905-525-9140, Email: mmri-ad@mcmaster.ca
+- Hours: Monday-Friday 8:30am-4:30pm
 
-ABOUT THE MMRI:
-- Full name: McMaster Manufacturing Research Institute (MMRI)
-- Located at: 230 Longwood Road South, Hamilton, Ontario, Canada, L8P 0A6 (McMaster Innovation Park)
-- New facility opened in 2023 at McMaster Innovation Park
-- 21,000 sq. ft. facility with 7 research labs
-- 20+ years of experience in teaching, research and industrial activities
-- Part of the Ontario Advanced Manufacturing Consortium (OAMC) with University of Waterloo and Western University
-- Phone: 905-525-9140, Hours: Monday-Friday 8:30am-4:30pm
+CONVERSATION ENDINGS:
+After the person has answered 4-5 questions, wrap up like this:
+1. Say "Here's what I'll pass along to the MMRI team:" and summarize in 3-4 bullet points
+2. Explain in 1-2 sentences which MMRI capability can help
+3. Ask: "Would you like me to help set up a meeting with our team?"
+4. If yes, ask for their name, company name, and email address
+5. Once you have their name, company, and email — end your message with this exact tag on its own line: [READY_FOR_SCOPING]
 
-MMRI'S FOCUS:
-- Develop intelligent solutions to issues faced by Canada's manufacturers in all steps of machining processes
-- Partners with industry to solve complex mechanical engineering and manufacturing challenges
-- Expertise spans: additive manufacturing, advanced manufacturing processes, and materials testing
-- Team includes: professional engineers, machinists, researchers, and students
-- Services range from rapid prototyping to process optimization and long-term technology development
+If someone asks something you do not know, tell them you will connect them with the MMRI team and direct them to mmri-ad@mcmaster.ca."""
 
-TECHNOLOGY TRANSFER SERVICES:
-- Tooling selection: helps choose correct tools using material, process and tooling information
-- Tool path development: uses MACHpro software for 5-axis process simulation and NC program optimization
-- Process parameters: uses CUTPRO software to optimize feeds and speeds
-- Process monitoring: uses MMRI-Monitoring software to track production in real time
-- Technology transfer: translates research outcomes into implementable industry solutions
-
-INDUSTRY SECTORS SERVED:
-- Automotive and aerospace
-- Energy and infrastructure
-- Advanced manufacturing
-- Metals, alloys, and advanced materials development
-- Healthcare
-
-STUDY & TRAINING:
-- Graduate-level degrees in manufacturing engineering
-- MMRI Industrial Training Program for career advancement
-- Students work directly on real industry problems
-
-If asked something not covered here, say you'll check with the lab team and direct them to contact MMRI directly."""
-
+# Initialize session state
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
-
-if not st.session_state.conversation:
-    st.markdown("**💡 Try asking:**")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("What does MMRI do?"):
-            st.session_state.starter = "What does MMRI do?"
-    with col2:
-        if st.button("Where is MMRI located?"):
-            st.session_state.starter = "Where is MMRI located?"
-    with col3:
-        if st.button("What condition monitoring services do you offer?"):
-            st.session_state.starter = "What condition monitoring services do you offer?"
+    st.session_state.client_info = {}
+    st.session_state.ready_for_scoping = False
+    opening_message = "Hi there! 👋 I'm the MMRI Assistant at McMaster Manufacturing Research Institute. I'm here to help figure out how our team can help with your manufacturing challenges.\n\nTo get started — what kind of manufacturing problem are you dealing with?"
+    st.session_state.conversation.append({
+        "role": "assistant",
+        "content": opening_message
+    })
 
 for message in st.session_state.conversation:
     with st.chat_message(message["role"]):
-        st.write(message["content"])
+        st.write(message["content"].replace("[READY_FOR_SCOPING]", ""))
 
 user_input = st.chat_input("Ask a question about MMRI...")
 
@@ -261,13 +229,33 @@ if user_input:
         ) as stream:
             for text in stream.text_stream:
                 full_response += text
-                response_placeholder.write(full_response + "▌")
-            response_placeholder.write(full_response)
+                response_placeholder.write(full_response.replace("[READY_FOR_SCOPING]", "") + "▌")
+            response_placeholder.write(full_response.replace("[READY_FOR_SCOPING]", ""))
 
     st.session_state.conversation.append({
         "role": "assistant",
         "content": full_response
     })
+
+    # Check if ready for scoping
+    if "[READY_FOR_SCOPING]" in full_response:
+        st.session_state.ready_for_scoping = True
+        # Save full conversation summary for scoping agent
+        st.session_state.client_info["conversation_summary"] = "\n".join([
+            f"{m['role'].upper()}: {m['content']}"
+            for m in st.session_state.conversation
+        ])
+
+# Show handoff button when ready
+if st.session_state.get("ready_for_scoping"):
+    st.markdown("""
+        <div class="handoff-box">
+            <h3>✅ Ready for Next Step!</h3>
+            <p>Your information has been collected. Click below to move to the Scoping Agent who will draft a project document for the MMRI team.</p>
+        </div>
+    """, unsafe_allow_html=True)
+    if st.button("➡️ Continue to Scoping Agent"):
+        st.switch_page("pages/2_Scoping_Agent.py")
 
 st.markdown("""
     <div class="footer">
