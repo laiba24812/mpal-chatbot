@@ -31,9 +31,11 @@ MSL: {TEAM_DESCRIPTIONS['MSL']}
 CBM: {TEAM_DESCRIPTIONS['CBM']}
 MPAL: {TEAM_DESCRIPTIONS['MPAL']}
 
-At the end of your response, always include a confidence score like this on its own line:
+At the end of your response, always include team matches on their own lines in exactly this format:
 MATCH: [team name] | CONFIDENCE: [percentage]%
-For example: MATCH: MPAL | CONFIDENCE: 87%"""
+If multiple teams are relevant, include one line per team, ordered by confidence. For example:
+MATCH: MPAL | CONFIDENCE: 87%
+MATCH: CBM | CONFIDENCE: 45%"""
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
