@@ -4,3 +4,8 @@ streamlit
 requests
 beautifulsoup4
 openpyxl
+flask
+flask-cors
+anthropic
+python-dotenv
+gunicorn
