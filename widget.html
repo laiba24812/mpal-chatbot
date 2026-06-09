@@ -186,7 +186,23 @@ function addMessage(role, text) {
   const messages = document.getElementById('mmri-messages');
   const div = document.createElement('div');
   div.className = `mmri-msg ${role}`;
-  div.innerText = text;
+  let displayText = text;
+  const matchLine = text.match(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/);
+  if (matchLine) {
+    displayText = text.replace(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/, '');
+    const badge = `<div style="margin-top:10px; padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold;">🎯 Best match: ${matchLine[1]} | Confidence: ${matchLine[2]}%</div>`;
+    div.innerHTML = displayText
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
+      .replace(/^- (.*)/gm, '• $1')
+      .replace(/\n/g, '<br>') + badge;
+} else {
+    div.innerHTML = displayText
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
+      .replace(/^- (.*)/gm, '• $1')
+      .replace(/\n/g, '<br>');
+}
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
   return div;
