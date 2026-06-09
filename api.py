@@ -35,7 +35,13 @@ At the end of your response, always include team matches on their own lines in e
 MATCH: [team name] | CONFIDENCE: [percentage]%
 If multiple teams are relevant, include one line per team, ordered by confidence. For example:
 MATCH: MPAL | CONFIDENCE: 87%
-MATCH: CBM | CONFIDENCE: 45%"""
+MATCH: CBM | CONFIDENCE: 45%
+
+After the team matches, always ask 1-2 follow-up questions to better understand the partner's needs. Format them like this:
+FOLLOWUP: [your question here]
+For example:
+FOLLOWUP: How urgently do you need this resolved?
+FOLLOWUP: Have you worked with a research institute before?"""
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
