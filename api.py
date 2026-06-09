@@ -31,7 +31,9 @@ MSL: {TEAM_DESCRIPTIONS['MSL']}
 CBM: {TEAM_DESCRIPTIONS['CBM']}
 MPAL: {TEAM_DESCRIPTIONS['MPAL']}
 
-Always respond in a friendly, non-technical way. End your response by recommending the best team and suggesting they contact mmri-ad@mcmaster.ca to set up a meeting."""
+At the end of your response, always include a confidence score like this on its own line:
+MATCH: [team name] | CONFIDENCE: [percentage]%
+For example: MATCH: MPAL | CONFIDENCE: 87%"""
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
