@@ -187,22 +187,25 @@ function addMessage(role, text) {
   const div = document.createElement('div');
   div.className = `mmri-msg ${role}`;
   let displayText = text;
-  const matchLine = text.match(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/);
-  if (matchLine) {
-    displayText = text.replace(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/, '');
-    const badge = `<div style="margin-top:10px; padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold;">🎯 Best match: ${matchLine[1]} | Confidence: ${matchLine[2]}%</div>`;
-    div.innerHTML = displayText
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
-      .replace(/^- (.*)/gm, '• $1')
-      .replace(/\n/g, '<br>') + badge;
-} else {
-    div.innerHTML = displayText
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
-      .replace(/^- (.*)/gm, '• $1')
-      .replace(/\n/g, '<br>');
+  const matchLines = [...text.matchAll(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/g)];
+  let displayText = text.replace(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/g, '').trim();
+
+  let badges = '';
+  if (matchLines.length > 0) {
+    badges = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">';
+    matchLines.forEach((match, i) => {
+      const opacity = i === 0 ? '1' : '0.6';
+      const label = i === 0 ? '🎯 Best match' : '🔁 Also relevant';
+      badges += `<div style="padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold; opacity:${opacity};">${label}: ${match[1]} | Confidence: ${match[2]}%</div>`;
+    });
+    badges += '</div>';
 }
+
+div.innerHTML = displayText
+  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+  .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
+  .replace(/^- (.*)/gm, '• $1')
+  .replace(/\n/g, '<br>') + badges;
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
   return div;
