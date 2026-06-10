@@ -119,6 +119,20 @@
   }
 
   .mmri-input-area input::placeholder { color: #666; }
+
+  .mmri-input-area button {
+    background: #7A003C;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mmri-input-area button svg { width: 18px; height: 18px; fill: white; }
 </style>
 </head>
 <body>
@@ -134,7 +148,7 @@
 <div id="mmri-chat-window">
   <div class="mmri-header">
     <div>
-      <h3>🔬 MMRI Assistant</h3>
+      <h3>🔬 ETHOS · MMRI Assistant</h3>
       <p>McMaster Manufacturing Research Institute</p>
     </div>
     <button class="mmri-close" onclick="toggleChat()">✕</button>
@@ -143,10 +157,12 @@
   <div class="mmri-messages" id="mmri-messages"></div>
 
   <div class="mmri-input-area">
-    <label for="mmri-file" style="flex:1; background:#2a2a2a; border:1px solid #444; border-radius:20px; padding:10px 16px; color:#999; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:8px;">
-      📎 Upload a PDF describing your problem
-      <input type="file" id="mmri-file" accept=".pdf" style="display:none;" onchange="uploadPDF()" />
-    </label>
+    <input type="text" id="mmri-input" placeholder="Describe your manufacturing challenge..." onkeydown="if(event.key==='Enter') sendMessage()" />
+    <button onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+      </svg>
+    </button>
   </div>
 </div>
 
@@ -161,7 +177,7 @@
     if (isOpen) {
       win.classList.add('open');
       if (conversation.length === 0) {
-        addMessage("bot", "Hi there! 👋 I'm the MMRI Assistant. Please upload a PDF describing your manufacturing problem and I'll match you with the right MMRI team!");
+        addMessage("bot", "Hi there! 👋 I'm ETHOS, the MMRI Assistant at McMaster Manufacturing Research Institute. I'm here to connect you with the right team for your manufacturing challenge.\n\nWhat kind of manufacturing problem are you dealing with?");
       }
     } else {
       win.classList.remove('open');
@@ -186,7 +202,10 @@
       matchLines.forEach((match, i) => {
         const opacity = i === 0 ? '1' : '0.6';
         const label = i === 0 ? '🎯 Best match' : '🔁 Also relevant';
-        badges += `<div style="padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold; opacity:${opacity};">${label}: ${match[1]} | Confidence: ${match[2]}%</div>`;
+        badges += `<div style="padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold; opacity:${opacity}; display:flex; justify-content:space-between; align-items:center;">
+          <span>${label}: ${match[1]} | Confidence: ${match[2]}%</span>
+          ${i === 0 ? `<button onclick="downloadScoping('${match[1]}', '${match[2]}')" style="background:#FDBF57; color:#7A003C; border:none; border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; font-weight:bold;">📄 Scoping Doc</button>` : ''}
+        </div>`;
       });
       badges += '</div>';
     }
@@ -211,49 +230,83 @@
     return div;
   }
 
-  async function answerFollowup(question) {
-    addMessage('user', question);
-    const typing = addMessage('typing', 'MMRI Assistant is thinking... 🔬');
+  async function sendMessage() {
+    const input = document.getElementById('mmri-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    addMessage('user', text);
+    conversation.push({ role: 'user', content: text });
+
+    const typing = addMessage('typing', 'ETHOS is thinking... 🔬');
+
     try {
       const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: question }] })
+        body: JSON.stringify({ messages: conversation })
       });
       const data = await response.json();
       typing.remove();
-      addMessage('bot', data.response);
+      const reply = data.response;
+      addMessage('bot', reply);
+      conversation.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      typing.remove();
+      addMessage('bot', 'Sorry, I had trouble connecting. Please try again or email mmri-ad@mcmaster.ca');
+    }
+  }
+
+  async function answerFollowup(question) {
+    addMessage('user', question);
+    conversation.push({ role: 'user', content: question });
+    const typing = addMessage('typing', 'ETHOS is thinking... 🔬');
+    try {
+      const response = await fetch(`${API_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation })
+      });
+      const data = await response.json();
+      typing.remove();
+      const reply = data.response;
+      addMessage('bot', reply);
+      conversation.push({ role: 'assistant', content: reply });
     } catch (err) {
       typing.remove();
       addMessage('bot', 'Sorry, I had trouble connecting. Please try again.');
     }
   }
 
-  async function uploadPDF() {
-    const fileInput = document.getElementById('mmri-file');
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    addMessage('user', `📄 Uploaded: ${file.name}`);
-    const typing = addMessage('typing', 'MMRI Assistant is analyzing your document... 🔬');
-
-    const formData = new FormData();
-    formData.append('file', file);
+  async function downloadScoping(team, confidence) {
+    addMessage('bot', 'Generating your scoping document... 🔬');
+    const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
     try {
-      const response = await fetch(`${API_URL}/api/upload`, {
+      const response = await fetch(`${API_URL}/api/scoping`, {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          partner_name: 'Partner',
+          company: 'Company',
+          problem: 'See conversation summary below',
+          matched_team: team,
+          confidence: confidence,
+          conversation_summary: conversationText
+        })
       });
-      const data = await response.json();
-      typing.remove();
-      addMessage('bot', data.response);
-    } catch (err) {
-      typing.remove();
-      addMessage('bot', 'Sorry, I had trouble processing your document. Please try again or email mmri-ad@mcmaster.ca');
-    }
 
-    fileInput.value = '';
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MMRI_Scoping_${team}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addMessage('bot', 'Sorry, could not generate the scoping document. Please try again.');
+    }
   }
 </script>
 </body>
