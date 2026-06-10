@@ -279,6 +279,23 @@
     }
   }
 
+  function extractInfo(type) {
+    const fullText = conversation.map(m => m.content).join(' ').toLowerCase();
+    if (type === 'name') {
+      const match = fullText.match(/my name is ([a-z]+ ?[a-z]*)/i);
+      return match ? match[1] : null;
+    }
+    if (type === 'company') {
+      const match = fullText.match(/(?:from|at|work at|company is) ([a-z0-9 ]+)/i);
+      return match ? match[1] : null;
+    }
+    if (type === 'problem') {
+      const firstUserMsg = conversation.find(m => m.role === 'user');
+      return firstUserMsg ? firstUserMsg.content : null;
+    }
+    return null;
+  }
+
   async function downloadScoping(team, confidence) {
     addMessage('bot', 'Generating your scoping document... 🔬');
     const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
@@ -288,9 +305,9 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          partner_name: 'Partner',
-          company: 'Company',
-          problem: 'See conversation summary below',
+          partner_name: extractInfo('name') || 'Partner',
+          company: extractInfo('company') || 'Company',
+          problem: extractInfo('problem') || 'See conversation summary below',
           matched_team: team,
           confidence: confidence,
           conversation_summary: conversationText
