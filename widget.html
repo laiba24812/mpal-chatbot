@@ -137,14 +137,12 @@
 </head>
 <body>
 
-<!-- Chat bubble -->
 <div id="mmri-chat-bubble" onclick="toggleChat()">
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
   </svg>
 </div>
 
-<!-- Chat window -->
 <div id="mmri-chat-window">
   <div class="mmri-header">
     <div>
@@ -157,7 +155,7 @@
   <div class="mmri-messages" id="mmri-messages"></div>
 
   <div class="mmri-input-area">
-    <input type="text" id="mmri-input" placeholder="Describe your manufacturing challenge..." onkeydown="if(event.key==='Enter') sendMessage()" />
+    <input type="text" id="mmri-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') sendMessage()" />
     <button onclick="sendMessage()">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
@@ -177,7 +175,7 @@
     if (isOpen) {
       win.classList.add('open');
       if (conversation.length === 0) {
-        addMessage("bot", "Hi there! 👋 I'm ETHOS, the MMRI Assistant at McMaster Manufacturing Research Institute. I'm here to connect you with the right team for your manufacturing challenge.\n\nWhat kind of manufacturing problem are you dealing with?");
+        addMessage("bot", "Hi there! 👋 I'm ETHOS, the MMRI Assistant at McMaster Manufacturing Research Institute. I'm here to connect you with the right team for your manufacturing challenge.\n\nBefore we get started, could I get your name, company name, and email address?");
       }
     } else {
       win.classList.remove('open');
@@ -279,23 +277,6 @@
     }
   }
 
-  function extractInfo(type) {
-    const fullText = conversation.map(m => m.content).join(' ').toLowerCase();
-    if (type === 'name') {
-      const match = fullText.match(/my name is ([a-z]+ ?[a-z]*)/i);
-      return match ? match[1] : null;
-    }
-    if (type === 'company') {
-      const match = fullText.match(/(?:from|at|work at|company is) ([a-z0-9 ]+)/i);
-      return match ? match[1] : null;
-    }
-    if (type === 'problem') {
-      const firstUserMsg = conversation.find(m => m.role === 'user');
-      return firstUserMsg ? firstUserMsg.content : null;
-    }
-    return null;
-  }
-
   async function downloadScoping(team, confidence) {
     addMessage('bot', 'Generating your scoping document... 🔬');
     const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
@@ -305,9 +286,6 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          partner_name: extractInfo('name') || 'Partner',
-          company: extractInfo('company') || 'Company',
-          problem: extractInfo('problem') || 'See conversation summary below',
           matched_team: team,
           confidence: confidence,
           conversation_summary: conversationText

@@ -39,7 +39,7 @@ def get_system_prompt():
     
     return f"""You are ETHOS, the intelligent assistant for the McMaster Manufacturing Research Institute (MMRI). Your job is to help industry partners find the right MMRI team for their manufacturing challenge.
 
-Your goal is to ask the MINIMUM number of questions (2-3 max) to determine which sub-team is the best fit. Be friendly, concise and non-technical.
+Your goal is to ask the MINIMUM number of questions to determine which sub-team is the best fit. Be friendly, concise and non-technical.
 
 MMRI SUB-TEAMS:
 MSL: {TEAM_DESCRIPTIONS['MSL']}
@@ -51,14 +51,12 @@ INTERNAL MMRI KNOWLEDGE BASE:
 {knowledge if knowledge else "No internal documents uploaded yet."}
 
 CONVERSATION FLOW:
-1. Greet the partner warmly and make them feel comfortable
-2. Ask a very simple open-ended question like "What's been giving you trouble lately in your production or manufacturing?"
-3. If they struggle to explain, offer examples: "For example, is something breaking down too often? Are your parts not coming out right? Is a process taking too long?"
-4. Ask maximum 1-2 follow-up questions to clarify
-5. Once you have enough info to match them to a team, BEFORE showing the match, ask: "Before I connect you with our team, could I get your name, company name, and email address?"
-6. Wait for them to provide all three pieces of info
-7. Then match them to the best sub-team
-8. Explain the match in plain everyday language — never use acronyms or technical terms
+1. Greet the partner warmly and immediately ask: "Before we get started, could I get your name, company name, and email address?"
+2. Wait for them to provide all three — if they only give some, ask for the missing ones
+3. Once you have name, company, and email, ask: "What's been giving you trouble lately in your production or manufacturing?"
+4. If they struggle to explain, offer examples: "For example, is something breaking down too often? Are your parts not coming out right? Is a process taking too long?"
+5. Ask maximum 1-2 follow-up questions to clarify
+6. Match them to the best sub-team and explain in plain everyday language
 
 LANGUAGE RULES:
 - Never say: CBM, MSL, MPAL, OEE, FMEA, KPI, predictive maintenance, condition monitoring
@@ -204,22 +202,22 @@ def generate_scoping():
         max_tokens=256,
         messages=[{
             "role": "user",
-            "content": f"From this conversation extract: partner name, company name, email, and main problem. Return ONLY JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"problem\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+            "content": f"From this conversation extract: partner name, company name, email, and main problem. Return ONLY a JSON object with no markdown, no backticks, just raw JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"problem\": \"...\"}}\n\nConversation:\n{conversation_summary}"
         }]
     )
 
-    import json as json_module
     try:
-        extracted = json_module.loads(extract_response.content[0].text)
+        raw = extract_response.content[0].text.strip()
+        extracted = json.loads(raw)
         partner_name = extracted.get('name', 'Unknown')
         company = extracted.get('company', 'Unknown')
         email = extracted.get('email', 'Not provided')
         problem = extracted.get('problem', '')
     except:
-        partner_name = data.get('partner_name', 'Unknown')
-        company = data.get('company', 'Unknown')
+        partner_name = 'Unknown'
+        company = 'Unknown'
         email = 'Not provided'
-        problem = data.get('problem', '')
+        problem = ''
 
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
