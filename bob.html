@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOB · MMRI Internal Assistant</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+
+  body { background: #1a1a1a; }
+
+  #bob-chat-bubble {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    background: #2a2a7a;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 9999;
+  }
+
+  #bob-chat-bubble svg { width: 28px; height: 28px; fill: white; }
+
+  #bob-chat-window {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 400px;
+    height: 560px;
+    background: #1a1a1a;
+    border-radius: 16px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 9998;
+  }
+
+  #bob-chat-window.open { display: flex; }
+
+  .bob-header {
+    background: #2a2a7a;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bob-header h3 { color: #a0a0ff; font-size: 16px; margin: 0; }
+  .bob-header p { color: rgba(255,255,255,0.7); font-size: 12px; margin: 0; }
+
+  .bob-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .bob-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .bob-msg {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .bob-msg.bot {
+    background: #2a2a3a;
+    color: white;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+  }
+
+  .bob-msg.user {
+    background: #2a2a7a;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+
+  .bob-msg.typing {
+    background: #2a2a3a;
+    color: #999;
+    align-self: flex-start;
+    font-style: italic;
+  }
+
+  .bob-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid #333;
+    display: flex;
+    gap: 8px;
+  }
+
+  .bob-input-area input {
+    flex: 1;
+    background: #2a2a3a;
+    border: 1px solid #444;
+    border-radius: 20px;
+    padding: 10px 16px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .bob-input-area input::placeholder { color: #666; }
+
+  .bob-input-area button {
+    background: #2a2a7a;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bob-input-area button svg { width: 18px; height: 18px; fill: white; }
+</style>
+</head>
+<body>
+
+<div id="bob-chat-bubble" onclick="toggleBob()">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+  </svg>
+</div>
+
+<div id="bob-chat-window">
+  <div class="bob-header">
+    <div>
+      <h3>🤖 BOB · Internal Assistant</h3>
+      <p>MMRI Staff Only · Ask me anything about partners & projects</p>
+    </div>
+    <button class="bob-close" onclick="toggleBob()">✕</button>
+  </div>
+
+  <div class="bob-messages" id="bob-messages"></div>
+
+  <div class="bob-input-area">
+    <input type="text" id="bob-input" placeholder="Ask about a partner, project, or team..." onkeydown="if(event.key==='Enter') sendBobMessage()" />
+    <button onclick="sendBobMessage()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://mpal-chatbot.onrender.com";
+  let conversation = [];
+  let isOpen = false;
+
+  function toggleBob() {
+    isOpen = !isOpen;
+    const win = document.getElementById('bob-chat-window');
+    if (isOpen) {
+      win.classList.add('open');
+      if (conversation.length === 0) {
+        addMessage("bot", "Hi! 👋 I'm BOB, your internal MMRI assistant. I can help you find info about partners, past projects, and internal documents.\n\nWhat would you like to know?");
+      }
+    } else {
+      win.classList.remove('open');
+    }
+  }
+
+  function addMessage(role, text) {
+    const messages = document.getElementById('bob-messages');
+    const div = document.createElement('div');
+    div.className = `bob-msg ${role}`;
+    div.innerHTML = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  async function sendBobMessage() {
+    const input = document.getElementById('bob-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    addMessage('user', text);
+    conversation.push({ role: 'user', content: text });
+
+    const typing = addMessage('typing', 'BOB is searching... 🔍');
+
+    try {
+      const response = await fetch(`${API_URL}/api/bob`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation })
+      });
+      const data = await response.json();
+      typing.remove();
+      const reply = data.response;
+      addMessage('bot', reply);
+      conversation.push({ role: 'assistant', content: reply });
+    } catch (err) {
+      typing.remove();
+      addMessage('bot', 'Sorry, I had trouble connecting. Please try again.');
+    }
+  }
+</script>
+</body>
+</html>
