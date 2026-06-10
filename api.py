@@ -187,5 +187,82 @@ def get_knowledge():
 def health():
     return jsonify({'status': 'ok'})
 
+@app.route('/api/scoping', methods=['POST'])
+def generate_scoping():
+    data = request.json
+    partner_name = data.get('partner_name', 'Unknown')
+    company = data.get('company', 'Unknown')
+    problem = data.get('problem', '')
+    matched_team = data.get('matched_team', '')
+    confidence = data.get('confidence', '')
+    conversation_summary = data.get('conversation_summary', '')
+
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.colors import HexColor
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+    from reportlab.lib.units import inch
+    import io
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                           rightMargin=inch, leftMargin=inch,
+                           topMargin=inch, bottomMargin=inch)
+
+    styles = getSampleStyleSheet()
+    maroon = HexColor('#7A003C')
+    gold = HexColor('#FDBF57')
+
+    title_style = ParagraphStyle('Title', parent=styles['Title'],
+                                  textColor=maroon, fontSize=24, spaceAfter=6)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                     textColor=HexColor('#666666'), fontSize=11, spaceAfter=20)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'],
+                                    textColor=maroon, fontSize=13, spaceBefore=16, spaceAfter=6)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'],
+                                 fontSize=11, spaceAfter=8, leading=16)
+
+    story = []
+
+    story.append(Paragraph("MMRI Project Scoping Document", title_style))
+    story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=2, color=maroon))
+    story.append(Spacer(1, 16))
+
+    story.append(Paragraph("Partner Information", heading_style))
+    story.append(Paragraph(f"<b>Name:</b> {partner_name}", body_style))
+    story.append(Paragraph(f"<b>Company:</b> {company}", body_style))
+
+    story.append(Paragraph("Problem Description", heading_style))
+    story.append(Paragraph(problem, body_style))
+
+    story.append(Paragraph("Recommended MMRI Team", heading_style))
+    story.append(Paragraph(f"<b>Team:</b> {matched_team}", body_style))
+    story.append(Paragraph(f"<b>Match Confidence:</b> {confidence}%", body_style))
+    story.append(Paragraph(f"<b>Why this team:</b> {TEAM_DESCRIPTIONS.get(matched_team, '')}", body_style))
+
+    story.append(Paragraph("Conversation Summary", heading_style))
+    story.append(Paragraph(conversation_summary, body_style))
+
+    story.append(Paragraph("Next Steps", heading_style))
+    story.append(Paragraph("1. Review this scoping document with the MMRI team lead", body_style))
+    story.append(Paragraph("2. Schedule a kickoff meeting to discuss project details", body_style))
+    story.append(Paragraph("3. Sign NDA and project agreement", body_style))
+    story.append(Paragraph("4. Begin project scoping and timeline planning", body_style))
+
+    story.append(Spacer(1, 20))
+    story.append(HRFlowable(width="100%", thickness=1, color=HexColor('#cccccc')))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("McMaster Manufacturing Research Institute · 230 Longwood Rd S, Hamilton ON · mmri-ad@mcmaster.ca · 905-525-9140", 
+                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    from flask import send_file
+    return send_file(buffer, mimetype='application/pdf',
+                    as_attachment=True,
+                    download_name=f'MMRI_Scoping_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
