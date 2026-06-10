@@ -9,3 +9,4 @@ flask-cors
 anthropic
 python-dotenv
 gunicorn
+reportlab
