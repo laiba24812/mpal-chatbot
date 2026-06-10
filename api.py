@@ -264,7 +264,8 @@ def generate_scoping():
     story.append(Paragraph(f"<b>Why this team:</b> {TEAM_DESCRIPTIONS.get(matched_team, '')}", body_style))
 
     story.append(Paragraph("Conversation Summary", heading_style))
-    story.append(Paragraph(conversation_summary.replace('\n', '<br/>'), body_style))
+    clean_summary = conversation_summary.replace('\n', '<br/>').encode('ascii', 'replace').decode('ascii').replace('?', ' ')
+    story.append(Paragraph(clean_summary, body_style))
 
     story.append(Paragraph("Next Steps", heading_style))
     story.append(Paragraph("1. Review this scoping document with the MMRI team lead", body_style))
