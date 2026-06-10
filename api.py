@@ -280,8 +280,8 @@ def generate_scoping():
     story.append(Paragraph(f"<b>Why this team:</b> {TEAM_DESCRIPTIONS.get(matched_team, '')}", body_style))
 
     story.append(Paragraph("Conversation Summary", heading_style))
-    clean_summary = conversation_summary.replace('\n', '<br/>').encode('ascii', 'replace').decode('ascii').replace('?', ' ')
-    story.append(Paragraph(clean_summary, body_style))
+    clean_summary = conversation_summary.encode('ascii', 'replace').decode('ascii')
+    story.append(Paragraph(clean_summary.replace('\n', '<br/>'), body_style))
 
     story.append(Paragraph("Next Steps", heading_style))
     story.append(Paragraph("1. Review this scoping document with the MMRI team lead", body_style))
@@ -303,16 +303,11 @@ def generate_scoping():
                     as_attachment=True,
                     download_name=f'MMRI_Scoping_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
 
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok'})
-
 @app.route('/api/bob', methods=['POST'])
 def bob():
     data = request.json
     messages = data.get('messages', [])
     
-    # Load all knowledge sources
     kb = load_knowledge_base()
     knowledge = kb.get("knowledge", "")
     
@@ -355,3 +350,69 @@ Be concise and helpful. When answering about a specific partner or project, cite
     )
     
     return jsonify({'response': response.content[0].text})
+
+@app.route('/api/report', methods=['POST'])
+def generate_report():
+    data = request.json
+    conversation_summary = data.get('conversation_summary', '')
+    bob_response = data.get('bob_response', '')
+
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.colors import HexColor
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+    from reportlab.lib.units import inch
+    import io
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                           rightMargin=inch, leftMargin=inch,
+                           topMargin=inch, bottomMargin=inch)
+
+    styles = getSampleStyleSheet()
+    blue = HexColor('#2a2a7a')
+
+    title_style = ParagraphStyle('Title', parent=styles['Title'],
+                                  textColor=blue, fontSize=24, spaceAfter=6)
+    subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'],
+                                     textColor=HexColor('#666666'), fontSize=11, spaceAfter=20)
+    heading_style = ParagraphStyle('Heading', parent=styles['Heading2'],
+                                    textColor=blue, fontSize=13, spaceBefore=16, spaceAfter=6)
+    body_style = ParagraphStyle('Body', parent=styles['Normal'],
+                                 fontSize=11, spaceAfter=8, leading=16)
+
+    story = []
+
+    story.append(Paragraph("MMRI Internal Project Report", title_style))
+    story.append(Paragraph(f"Generated on {datetime.now().strftime('%B %d, %Y')}", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=2, color=blue))
+    story.append(Spacer(1, 16))
+
+    story.append(Paragraph("BOB Summary", heading_style))
+    clean_bob = bob_response.encode('ascii', 'replace').decode('ascii')
+    story.append(Paragraph(clean_bob.replace('\n', '<br/>'), body_style))
+
+    story.append(Paragraph("Full Conversation Log", heading_style))
+    clean_summary = conversation_summary.encode('ascii', 'replace').decode('ascii')
+    story.append(Paragraph(clean_summary.replace('\n', '<br/>'), body_style))
+
+    story.append(Spacer(1, 20))
+    story.append(HRFlowable(width="100%", thickness=1, color=HexColor('#cccccc')))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("McMaster Manufacturing Research Institute · Internal Use Only · mmri-ad@mcmaster.ca",
+                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
+
+    doc.build(story)
+    buffer.seek(0)
+
+    from flask import send_file
+    return send_file(buffer, mimetype='application/pdf',
+                    as_attachment=True,
+                    download_name=f'MMRI_Report_{datetime.now().strftime("%Y%m%d")}.pdf')
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
