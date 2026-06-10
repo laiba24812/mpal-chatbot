@@ -307,5 +307,51 @@ def generate_scoping():
 def health():
     return jsonify({'status': 'ok'})
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+@app.route('/api/bob', methods=['POST'])
+def bob():
+    data = request.json
+    messages = data.get('messages', [])
+    
+    # Load all knowledge sources
+    kb = load_knowledge_base()
+    knowledge = kb.get("knowledge", "")
+    
+    conversations = []
+    if os.path.exists('conversations.json'):
+        with open('conversations.json', 'r') as f:
+            conversations = json.load(f)
+    
+    conversations_text = "\n\n".join([
+        f"Conversation {c['id']} ({c['date']}):\n" + 
+        "\n".join([f"{m['role'].upper()}: {m['content']}" for m in c['messages']])
+        for c in conversations[-20:]
+    ])
+    
+    bob_system = f"""You are BOB, an internal assistant for the McMaster Manufacturing Research Institute (MMRI) staff. You help MMRI team members quickly find information about partners, past projects, and internal knowledge.
+
+You have access to:
+1. Recent ETHOS partner conversations
+2. Internal MMRI documents uploaded by managers
+
+RECENT ETHOS CONVERSATIONS:
+{conversations_text if conversations_text else "No conversations yet."}
+
+INTERNAL MMRI KNOWLEDGE BASE:
+{knowledge if knowledge else "No documents uploaded yet."}
+
+MMRI SUB-TEAMS:
+- MSL (Materials Science Lab) — Brady
+- CBM (Condition-Based Monitoring) — Kristin
+- MPAL (Manufacturing Process Analysis Lab) — Darren
+- Training — Sean
+
+Be concise and helpful. When answering about a specific partner or project, cite which conversation or document you found the info in."""
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=bob_system,
+        messages=messages
+    )
+    
+    return jsonify({'response': response.content[0].text})
