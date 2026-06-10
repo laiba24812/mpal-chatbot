@@ -170,6 +170,7 @@
   const API_URL = "https://mpal-chatbot.onrender.com";
   let conversation = [];
   let isOpen = false;
+  let lastBobResponse = '';
 
   function toggleBob() {
     isOpen = !isOpen;
@@ -184,13 +185,22 @@
     }
   }
 
-  function addMessage(role, text) {
+  function addMessage(role, text, showReport = false) {
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
     div.className = `bob-msg ${role}`;
-    div.innerHTML = text
+
+    let content = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
+
+    if (showReport) {
+      content += `<div style="margin-top:10px;">
+        <button onclick="downloadReport('${encodeURIComponent(text)}')" style="background:#2a2a7a; border:none; border-radius:8px; color:#a0a0ff; padding:8px 12px; font-size:13px; cursor:pointer; font-weight:bold;">📄 Generate Report</button>
+      </div>`;
+    }
+
+    div.innerHTML = content;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
@@ -216,11 +226,38 @@
       const data = await response.json();
       typing.remove();
       const reply = data.response;
-      addMessage('bot', reply);
+      lastBobResponse = reply;
+      addMessage('bot', reply, true);
       conversation.push({ role: 'assistant', content: reply });
     } catch (err) {
       typing.remove();
       addMessage('bot', 'Sorry, I had trouble connecting. Please try again.');
+    }
+  }
+
+  async function downloadReport(encodedResponse) {
+    const bobResponse = decodeURIComponent(encodedResponse);
+    const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+
+    try {
+      const response = await fetch(`${API_URL}/api/report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bob_response: bobResponse,
+          conversation_summary: conversationText
+        })
+      });
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MMRI_Report_${Date.now()}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      addMessage('bot', 'Sorry, could not generate the report. Please try again.');
     }
   }
 </script>
