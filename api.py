@@ -55,19 +55,16 @@ CONVERSATION FLOW:
 2. Ask a very simple open-ended question like "What's been giving you trouble lately in your production or manufacturing?"
 3. If they struggle to explain, offer examples: "For example, is something breaking down too often? Are your parts not coming out right? Is a process taking too long?"
 4. Ask maximum 1-2 follow-up questions to clarify
-5. Match them to the best sub-team
-6. Explain the match in plain everyday language — never use acronyms or technical terms
-7. Once you have enough info to match them to a team, BEFORE showing the match, ask: "Before I connect you with our team, could I get your name, company name, and email address?"
-8. Wait for them to provide all three pieces of info
-9. Then show the match and offer the scoping document
+5. Once you have enough info to match them to a team, BEFORE showing the match, ask: "Before I connect you with our team, could I get your name, company name, and email address?"
+6. Wait for them to provide all three pieces of info
+7. Then match them to the best sub-team
+8. Explain the match in plain everyday language — never use acronyms or technical terms
 
 LANGUAGE RULES:
 - Never say: CBM, MSL, MPAL, OEE, FMEA, KPI, predictive maintenance, condition monitoring
 - Always say: "our equipment health team", "our materials team", "our manufacturing process team", "our training team"
 - Use analogies: "think of it like a check engine light for your machines"
 - Keep responses short — 2-4 sentences max per message
-- When asking for contact info say: "Before I connect you with our team, could I get your name, company, and email address?"
-- Always confirm their info back to them before generating the document
 
 At the end of your response when you have enough info to match, include:
 MATCH: [team name] | CONFIDENCE: [percentage]%
@@ -195,19 +192,34 @@ def get_knowledge():
     kb = load_knowledge_base()
     return jsonify({'knowledge': kb.get("knowledge", "")})
 
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok'})
-
 @app.route('/api/scoping', methods=['POST'])
 def generate_scoping():
     data = request.json
-    partner_name = data.get('partner_name', 'Unknown')
-    company = data.get('company', 'Unknown')
-    problem = data.get('problem', '')
     matched_team = data.get('matched_team', '')
     confidence = data.get('confidence', '')
     conversation_summary = data.get('conversation_summary', '')
+
+    extract_response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=256,
+        messages=[{
+            "role": "user",
+            "content": f"From this conversation extract: partner name, company name, email, and main problem. Return ONLY JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"problem\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+        }]
+    )
+
+    import json as json_module
+    try:
+        extracted = json_module.loads(extract_response.content[0].text)
+        partner_name = extracted.get('name', 'Unknown')
+        company = extracted.get('company', 'Unknown')
+        email = extracted.get('email', 'Not provided')
+        problem = extracted.get('problem', '')
+    except:
+        partner_name = data.get('partner_name', 'Unknown')
+        company = data.get('company', 'Unknown')
+        email = 'Not provided'
+        problem = data.get('problem', '')
 
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -223,7 +235,6 @@ def generate_scoping():
 
     styles = getSampleStyleSheet()
     maroon = HexColor('#7A003C')
-    gold = HexColor('#FDBF57')
 
     title_style = ParagraphStyle('Title', parent=styles['Title'],
                                   textColor=maroon, fontSize=24, spaceAfter=6)
@@ -244,6 +255,7 @@ def generate_scoping():
     story.append(Paragraph("Partner Information", heading_style))
     story.append(Paragraph(f"<b>Name:</b> {partner_name}", body_style))
     story.append(Paragraph(f"<b>Company:</b> {company}", body_style))
+    story.append(Paragraph(f"<b>Email:</b> {email}", body_style))
 
     story.append(Paragraph("Problem Description", heading_style))
     story.append(Paragraph(problem, body_style))
@@ -254,7 +266,7 @@ def generate_scoping():
     story.append(Paragraph(f"<b>Why this team:</b> {TEAM_DESCRIPTIONS.get(matched_team, '')}", body_style))
 
     story.append(Paragraph("Conversation Summary", heading_style))
-    story.append(Paragraph(conversation_summary, body_style))
+    story.append(Paragraph(conversation_summary.replace('\n', '<br/>'), body_style))
 
     story.append(Paragraph("Next Steps", heading_style))
     story.append(Paragraph("1. Review this scoping document with the MMRI team lead", body_style))
@@ -265,7 +277,7 @@ def generate_scoping():
     story.append(Spacer(1, 20))
     story.append(HRFlowable(width="100%", thickness=1, color=HexColor('#cccccc')))
     story.append(Spacer(1, 8))
-    story.append(Paragraph("McMaster Manufacturing Research Institute · 230 Longwood Rd S, Hamilton ON · mmri-ad@mcmaster.ca · 905-525-9140", 
+    story.append(Paragraph("McMaster Manufacturing Research Institute · 230 Longwood Rd S, Hamilton ON · mmri-ad@mcmaster.ca · 905-525-9140",
                            ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
 
     doc.build(story)
@@ -275,6 +287,10 @@ def generate_scoping():
     return send_file(buffer, mimetype='application/pdf',
                     as_attachment=True,
                     download_name=f'MMRI_Scoping_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
