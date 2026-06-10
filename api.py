@@ -90,7 +90,23 @@ def chat():
         messages=messages
     )
     
-    return jsonify({'response': response.content[0].text})
+    reply = response.content[0].text
+    
+    conversations = []
+    if os.path.exists('conversations.json'):
+        with open('conversations.json', 'r') as f:
+            conversations = json.load(f)
+    
+    conversations.append({
+        "id": str(len(conversations) + 1),
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "messages": messages + [{"role": "assistant", "content": reply}]
+    })
+    
+    with open('conversations.json', 'w') as f:
+        json.dump(conversations, f)
+    
+    return jsonify({'response': reply})
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
