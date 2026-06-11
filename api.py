@@ -2,7 +2,7 @@ import os
 import json
 import base64
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import anthropic
 from dotenv import load_dotenv
@@ -27,8 +27,8 @@ def save_knowledge_base(kb):
         json.dump(kb, f)
 
 TEAM_DESCRIPTIONS = {
-    "MSL": "The Materials Science Lab (MSL) specializes in material characterization, property assessment, product development, and materials testing. Led by Brady.",
-    "CBM": "The Condition-Based Monitoring (CBM) team specializes in monitoring equipment health, predictive maintenance, and performance assessment of industrial equipment. Led by Kristin.",
+    "MSL": "The Machining Systems Laboratory (MSL) specializes in precision machining, milling, turning, grinding, EDM, water jet cutting, micro machining, CMM measurement, and material testing. Equipment includes 5-axis CNC mills, lathes, surface grinders, tool grinders, CMMs, and water jet systems. Led by Brady.",
+    "CBM": "The Condition-Based Monitoring (CBM) team specializes in monitoring equipment health, predictive maintenance, vibration analysis, and performance assessment of industrial equipment. Led by Kristin.",
     "MPAL": "The Manufacturing Process Analysis Lab (MPAL) specializes in advanced manufacturing processes, machining, CNC operations, tooling, process optimization, and condition monitoring. Led by Darren.",
     "Training": "The Training team specializes in workforce development, training programs, and knowledge transfer for manufacturing processes. Led by Sean."
 }
@@ -36,10 +36,8 @@ TEAM_DESCRIPTIONS = {
 def get_system_prompt():
     kb = load_knowledge_base()
     knowledge = kb.get("knowledge", "")
-    
-    return f"""You are ETHOS, the intelligent assistant for the McMaster Manufacturing Research Institute (MMRI). Your job is to help industry partners find the right MMRI team for their manufacturing challenge.
 
-Your goal is to ask the MINIMUM number of questions to determine which sub-team is the best fit. Be friendly, concise and non-technical.
+    return f"""You are ETHOS, the intelligent assistant for the McMaster Manufacturing Research Institute (MMRI). Your job is to help industry partners find the right MMRI team for their manufacturing challenge and collect the information MMRI needs to get started.
 
 MMRI SUB-TEAMS:
 MSL: {TEAM_DESCRIPTIONS['MSL']}
@@ -51,20 +49,36 @@ INTERNAL MMRI KNOWLEDGE BASE:
 {knowledge if knowledge else "No internal documents uploaded yet."}
 
 CONVERSATION FLOW:
-1. Greet the partner warmly and immediately ask: "Before we get started, could I get your name, company name, and email address?"
-2. Wait for them to provide all three — if they only give some, ask for the missing ones
-3. Once you have name, company, and email, ask: "What's been giving you trouble lately in your production or manufacturing?"
-4. If they struggle to explain, offer examples: "For example, is something breaking down too often? Are your parts not coming out right? Is a process taking too long?"
-5. Ask maximum 1-2 follow-up questions to clarify
-6. Match them to the best sub-team and explain in plain everyday language
+1. Greet the partner warmly and ask for their name, company name, and email address.
+2. Once you have those, ask: "Can you give me a quick overview of what your company does and who your customers are?"
+3. Ask: "What's been giving you trouble lately in your production or manufacturing?" If they struggle, offer examples: "For example, is something breaking down too often? Are your parts not coming out right? Is a process taking too long?"
+4. Ask: "Which of these best describes what you're looking for help with?" and offer these options in plain language:
+   - Understanding or testing your materials
+   - Developing or refining a product
+   - Prototyping support
+   - Improving a manufacturing process
+   - Monitoring equipment health and performance
+   - Something else
+5. Ask 1 follow-up question max to clarify if needed.
+6. Ask: "Roughly how many employees does your company have?" and "What timeline are you working with for this project?"
+7. Match them to the best sub-team and explain in plain everyday language.
 
 LANGUAGE RULES:
 - Never say: CBM, MSL, MPAL, OEE, FMEA, KPI, predictive maintenance, condition monitoring
 - Always say: "our equipment health team", "our materials team", "our manufacturing process team", "our training team"
 - Use analogies: "think of it like a check engine light for your machines"
 - Keep responses short — 2-4 sentences max per message
+- Ask only ONE question at a time
 
-At the end of your response when you have enough info to match, include:
+TEAM ROUTING GUIDE:
+- Material testing, characterization, property assessment → MSL
+- Product development, refinement → MSL
+- Prototyping → MSL or MPAL
+- Process development, CNC, machining, manufacturing improvement → MPAL
+- Equipment breaking down, performance monitoring, predictive health → CBM
+- Workforce training, knowledge transfer → Training
+
+At the end when you have enough info to match, include:
 MATCH: [team name] | CONFIDENCE: [percentage]%
 If multiple teams are relevant:
 MATCH: [team name] | CONFIDENCE: [percentage]%
@@ -82,40 +96,40 @@ ABOUT MMRI:
 def chat():
     data = request.json
     messages = data.get('messages', [])
-    
+
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
         system=get_system_prompt(),
         messages=messages
     )
-    
+
     reply = response.content[0].text
-    
+
     conversations = []
     if os.path.exists('conversations.json'):
         with open('conversations.json', 'r') as f:
             conversations = json.load(f)
-    
+
     conversations.append({
         "id": str(len(conversations) + 1),
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "messages": messages + [{"role": "assistant", "content": reply}]
     })
-    
+
     with open('conversations.json', 'w') as f:
         json.dump(conversations, f)
-    
+
     return jsonify({'response': reply})
 
 @app.route('/api/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
-    
+
     file = request.files['file']
     pdf_data = base64.standard_b64encode(file.read()).decode('utf-8')
-    
+
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
@@ -138,18 +152,18 @@ def upload():
             ]
         }]
     )
-    
+
     return jsonify({'response': response.content[0].text})
 
 @app.route('/api/train', methods=['POST'])
 def train():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
-    
+
     file = request.files['file']
     file_content = file.read()
     pdf_data = base64.standard_b64encode(file_content).decode('utf-8')
-    
+
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=2048,
@@ -171,9 +185,9 @@ def train():
             ]
         }]
     )
-    
+
     extracted = response.content[0].text
-    
+
     kb = load_knowledge_base()
     doc_id = str(len(kb["docs"]) + 1)
     kb["docs"].append({
@@ -182,10 +196,10 @@ def train():
         "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "extracted": extracted
     })
-    
+
     kb["knowledge"] = "\n\n".join([f"From {d['name']}:\n{d['extracted']}" for d in kb["docs"]])
     save_knowledge_base(kb)
-    
+
     return jsonify({'success': True, 'extracted': extracted})
 
 @app.route('/api/docs', methods=['GET'])
@@ -215,10 +229,10 @@ def generate_scoping():
 
     extract_response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=256,
+        max_tokens=512,
         messages=[{
             "role": "user",
-            "content": f"From this conversation extract: partner name, company name, email, and main problem. Return ONLY a JSON object with no markdown, no backticks, just raw JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"problem\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+            "content": f"From this conversation extract: partner name, company name, email, phone, company overview, problem description, project type, company size, and timeline. Return ONLY a JSON object with no markdown, no backticks, just raw JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"overview\": \"...\", \"problem\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"timeline\": \"...\"}}\n\nConversation:\n{conversation_summary}"
         }]
     )
 
@@ -228,12 +242,22 @@ def generate_scoping():
         partner_name = extracted.get('name', 'Unknown')
         company = extracted.get('company', 'Unknown')
         email = extracted.get('email', 'Not provided')
+        phone = extracted.get('phone', 'Not provided')
+        overview = extracted.get('overview', '')
         problem = extracted.get('problem', '')
+        project_type = extracted.get('project_type', '')
+        company_size = extracted.get('company_size', '')
+        timeline = extracted.get('timeline', '')
     except:
         partner_name = 'Unknown'
         company = 'Unknown'
         email = 'Not provided'
+        phone = 'Not provided'
+        overview = ''
         problem = ''
+        project_type = ''
+        company_size = ''
+        timeline = ''
 
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -244,8 +268,8 @@ def generate_scoping():
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
-                           rightMargin=inch, leftMargin=inch,
-                           topMargin=inch, bottomMargin=inch)
+                            rightMargin=inch, leftMargin=inch,
+                            topMargin=inch, bottomMargin=inch)
 
     styles = getSampleStyleSheet()
     maroon = HexColor('#7A003C')
@@ -270,6 +294,16 @@ def generate_scoping():
     story.append(Paragraph(f"<b>Name:</b> {partner_name}", body_style))
     story.append(Paragraph(f"<b>Company:</b> {company}", body_style))
     story.append(Paragraph(f"<b>Email:</b> {email}", body_style))
+    story.append(Paragraph(f"<b>Phone:</b> {phone}", body_style))
+    story.append(Paragraph(f"<b>Company Size:</b> {company_size}", body_style))
+
+    if overview:
+        story.append(Paragraph("Company Overview", heading_style))
+        story.append(Paragraph(overview, body_style))
+
+    story.append(Paragraph("Project Details", heading_style))
+    story.append(Paragraph(f"<b>Project Type:</b> {project_type}", body_style))
+    story.append(Paragraph(f"<b>Timeline:</b> {timeline}", body_style))
 
     story.append(Paragraph("Problem Description", heading_style))
     story.append(Paragraph(problem, body_style))
@@ -293,35 +327,35 @@ def generate_scoping():
     story.append(HRFlowable(width="100%", thickness=1, color=HexColor('#cccccc')))
     story.append(Spacer(1, 8))
     story.append(Paragraph("McMaster Manufacturing Research Institute · 230 Longwood Rd S, Hamilton ON · mmri-ad@mcmaster.ca · 905-525-9140",
-                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
+                            ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
 
     doc.build(story)
     buffer.seek(0)
 
     from flask import send_file
     return send_file(buffer, mimetype='application/pdf',
-                    as_attachment=True,
-                    download_name=f'MMRI_Scoping_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
+                     as_attachment=True,
+                     download_name=f'MMRI_Scoping_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
 
 @app.route('/api/bob', methods=['POST'])
 def bob():
     data = request.json
     messages = data.get('messages', [])
-    
+
     kb = load_knowledge_base()
     knowledge = kb.get("knowledge", "")
-    
+
     conversations = []
     if os.path.exists('conversations.json'):
         with open('conversations.json', 'r') as f:
             conversations = json.load(f)
-    
+
     conversations_text = "\n\n".join([
-        f"Conversation {c['id']} ({c['date']}):\n" + 
+        f"Conversation {c['id']} ({c['date']}):\n" +
         "\n".join([f"{m['role'].upper()}: {m['content']}" for m in c['messages']])
         for c in conversations[-20:]
     ])
-    
+
     bob_system = f"""You are BOB, an internal assistant for the McMaster Manufacturing Research Institute (MMRI) staff. You help MMRI team members quickly find information about partners, past projects, and internal knowledge.
 
 You have access to:
@@ -335,7 +369,7 @@ INTERNAL MMRI KNOWLEDGE BASE:
 {knowledge if knowledge else "No documents uploaded yet."}
 
 MMRI SUB-TEAMS:
-- MSL (Materials Science Lab) — Brady
+- MSL (Machining Systems Laboratory) — Brady
 - CBM (Condition-Based Monitoring) — Kristin
 - MPAL (Manufacturing Process Analysis Lab) — Darren
 - Training — Sean
@@ -348,7 +382,7 @@ Be concise and helpful. When answering about a specific partner or project, cite
         system=bob_system,
         messages=messages
     )
-    
+
     return jsonify({'response': response.content[0].text})
 
 @app.route('/api/report', methods=['POST'])
@@ -366,8 +400,8 @@ def generate_report():
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
-                           rightMargin=inch, leftMargin=inch,
-                           topMargin=inch, bottomMargin=inch)
+                            rightMargin=inch, leftMargin=inch,
+                            topMargin=inch, bottomMargin=inch)
 
     styles = getSampleStyleSheet()
     blue = HexColor('#2a2a7a')
@@ -400,15 +434,23 @@ def generate_report():
     story.append(HRFlowable(width="100%", thickness=1, color=HexColor('#cccccc')))
     story.append(Spacer(1, 8))
     story.append(Paragraph("McMaster Manufacturing Research Institute · Internal Use Only · mmri-ad@mcmaster.ca",
-                           ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
+                            ParagraphStyle('Footer', parent=styles['Normal'], fontSize=9, textColor=HexColor('#999999'))))
 
     doc.build(story)
     buffer.seek(0)
 
     from flask import send_file
     return send_file(buffer, mimetype='application/pdf',
-                    as_attachment=True,
-                    download_name=f'MMRI_Report_{datetime.now().strftime("%Y%m%d")}.pdf')
+                     as_attachment=True,
+                     download_name=f'MMRI_Report_{datetime.now().strftime("%Y%m%d")}.pdf')
+
+@app.route('/training')
+def serve_training():
+    return send_from_directory('.', 'training.html')
+
+@app.route('/bob')
+def serve_bob():
+    return send_from_directory('.', 'bob.html')
 
 @app.route('/health', methods=['GET'])
 def health():
