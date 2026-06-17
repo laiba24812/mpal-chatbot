@@ -486,6 +486,10 @@ def generate_report():
 def serve_training():
     return send_from_directory('.', 'training.html')
 
+@app.route('/widget.html')
+def serve_widget():
+    return send_from_directory('.', 'widget.html')
+
 @app.route('/bob')
 def serve_bob():
     return send_from_directory('.', 'bob.html')
