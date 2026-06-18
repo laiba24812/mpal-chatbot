@@ -97,7 +97,7 @@ Ask: "Is this project fee-for-service, or are you looking to apply for external 
     - "CAMEDA — specifically for medical device companies needing manufacturing support"
     - "CAMINA — for advanced manufacturing projects related to the nuclear industry"
   - Help them identify which mechanism best fits based on their project description and industry.
-  
+
 STEP 9 — PROJECT DESCRIPTION
 Ask: "Can you give me a more detailed description of the project? What are the goals and expected outcomes?"
 
@@ -420,11 +420,12 @@ def bob():
         for c in conversations[-20:]
     ])
 
-    bob_system = f"""You are BOB, an internal assistant for the McMaster Manufacturing Research Institute (MMRI) staff. You help MMRI team members quickly find information about partners, past projects, and internal knowledge.
+    bob_system = f"""You are BOB, an internal assistant for the McMaster Manufacturing Research Institute (MMRI) staff. You help MMRI team members quickly find information about partners, past projects, internal processes, and internal knowledge.
 
 You have access to:
 1. Recent ETHOS partner conversations
 2. Internal MMRI documents uploaded by managers
+3. MMRI's internal project workflows (below)
 
 RECENT ETHOS CONVERSATIONS:
 {conversations_text if conversations_text else "No conversations yet."}
@@ -438,8 +439,23 @@ MMRI SUB-TEAMS:
 - MPAL (Manufacturing Process Analysis Lab) — Darren
 - Training — Sean
 
-Be concise and helpful. When answering about a specific partner or project, cite which conversation or document you found the info in."""
+KRISTIN'S PROJECT WORKFLOW (Initiation → Planning → Execution → Closure):
+1. INITIATION: Create project folder (OCI or ORF Team) + Request project code (Sean) + Project kickoff w/ client → Develop proposal (DRF) or SOW (OCI) + quote (using Proposal/SOW template, quoting tool, project codes sheet) → Client approval (if no, revise proposal; if yes, proceed)
+2. PLANNING: Request Infinity X form (MMRI Admin) + Create SOW (ORF) + Complete MMRI promotion form (if applicable) → Assign MS Planner buckets and tasks
+3. EXECUTION: Execute project as per SOW → Client receives deliverables
+4. CLOSURE: Transfer OCI files to MMRI archive and delete channel + Update and close MS Planner tasks + Update IX form to next stage + Update project status in project codes list → Project closed
 
+DARREN'S PROJECT WORKFLOW (RFQ → Quote → Execution → Billing):
+1. Incoming request via Diss/Chat/Email → RFQ → Tech/Design → Milestone/OBS. RFQ also connects to Funding, OCI, and Steve.
+2. Quote → Excel SPLIT (outputs: FAB with LES/Kevin, Machine time, Report/Analysis, Sub-contract — these can iterate) and Quote tool
+3. Submit Q to customer (iterates with Q Accept until agreed) → Scope doc finalized
+4. Q Accept → Code request (outputs: KS, Hour allocation, PMP doc) and P.O
+5. Mail received → Kick-off → Assign tasks / Update timeline (outputs: Teams, PMP doc, email)
+6. Work → Clockify + Infinity X Form/Rock (outputs feed into MPAL-PMP Drive) → Submit report
+7. Billing (outputs: Infinity X, Ellen/Sam) → Budget vs Actual → Rate review
+8. Outcomes/Success → Follow-up
+
+When staff ask about "what happens after X" or "what's the next step in the process," reference these workflows directly. Be concise and helpful. When answering about a specific partner or project, cite which conversation or document you found the info in."""
     response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=1024,
