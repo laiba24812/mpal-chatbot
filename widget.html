@@ -5,134 +5,332 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MMRI Chat Widget</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  :root {
+    --maroon: #7A003C;
+    --maroon-dark: #5c002d;
+    --gold: #D4A24C;
+    --gold-bright: #FDBF57;
+    --paper: #FAF7F2;
+    --paper-dim: #F1ECE3;
+    --ink: #2B2420;
+    --ink-soft: #6B6258;
+    --line: #E3DACB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+  }
 
   #mmri-chat-bubble {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    width: 60px;
-    height: 60px;
-    background: #7A003C;
+    width: 62px;
+    height: 62px;
+    background: var(--maroon);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(122,0,60,0.35);
     z-index: 9999;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  #mmri-chat-bubble svg { width: 28px; height: 28px; fill: white; }
+  #mmri-chat-bubble:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 26px rgba(122,0,60,0.45);
+  }
+
+  #mmri-chat-bubble::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold-bright);
+    opacity: 0;
+    animation: mmri-pulse 2.6s ease-out infinite;
+  }
+
+  @keyframes mmri-pulse {
+    0% { opacity: 0.55; transform: scale(0.92); }
+    70% { opacity: 0; transform: scale(1.18); }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+
+  #mmri-chat-bubble svg { width: 26px; height: 26px; fill: var(--gold-bright); position: relative; z-index: 1; }
 
   #mmri-chat-window {
     position: fixed;
-    bottom: 100px;
+    bottom: 102px;
     right: 24px;
-    width: 370px;
-    height: 520px;
-    background: #1a1a1a;
-    border-radius: 16px;
+    width: 384px;
+    height: 560px;
+    background: var(--paper);
+    border-radius: 18px;
     display: none;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    box-shadow: 0 18px 50px rgba(43,36,32,0.28), 0 2px 8px rgba(43,36,32,0.12);
     z-index: 9998;
+    border: 1px solid var(--line);
   }
 
-  #mmri-chat-window.open { display: flex; }
+  #mmri-chat-window.open {
+    display: flex;
+    animation: mmri-rise 0.28s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  @keyframes mmri-rise {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
 
   .mmri-header {
-    background: #7A003C;
-    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding: 18px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    overflow: hidden;
   }
 
-  .mmri-header h3 { color: #FDBF57; font-size: 16px; margin: 0; }
-  .mmri-header p { color: rgba(255,255,255,0.8); font-size: 12px; margin: 0; }
+  .mmri-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-bright), var(--gold), var(--gold-bright));
+  }
+
+  .mmri-header-text h3 {
+    color: var(--gold-bright);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .mmri-status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6FCF97;
+    box-shadow: 0 0 0 2px rgba(111,207,151,0.25);
+    flex-shrink: 0;
+  }
+
+  .mmri-header-text p {
+    color: rgba(255,255,255,0.72);
+    font-size: 11.5px;
+    margin-top: 3px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.2px;
+  }
 
   .mmri-close {
-    background: none;
+    background: rgba(255,255,255,0.1);
     border: none;
-    color: white;
-    font-size: 20px;
+    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    font-family: Arial, sans-serif;
   }
+  .mmri-close:hover { background: rgba(255,255,255,0.22); }
 
   .mmri-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 18px 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(122,0,60,0.025) 0%, transparent 55%),
+      var(--paper);
   }
 
+  .mmri-messages::-webkit-scrollbar { width: 6px; }
+  .mmri-messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
   .mmri-msg {
-    max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 12px;
+    max-width: 84%;
+    padding: 11px 15px;
+    border-radius: 14px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.55;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    animation: mmri-msg-in 0.22s ease;
+  }
+
+  @keyframes mmri-msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .mmri-msg.bot {
-    background: #2a2a2a;
-    color: white;
+    background: #ffffff;
+    color: var(--ink);
     align-self: flex-start;
+    border: 1px solid var(--line);
     border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(43,36,32,0.04);
   }
 
   .mmri-msg.user {
-    background: #7A003C;
-    color: white;
+    background: var(--maroon);
+    color: #fff;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
   }
 
-  .mmri-msg.typing {
-    background: #2a2a2a;
-    color: #999;
+  .mmri-typing {
     align-self: flex-start;
-    font-style: italic;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    padding: 13px 16px;
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
   }
 
+  .mmri-typing span {
+    width: 6px; height: 6px;
+    background: var(--maroon);
+    border-radius: 50%;
+    opacity: 0.35;
+    animation: mmri-bounce 1.1s infinite ease-in-out;
+  }
+  .mmri-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .mmri-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes mmri-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+    40% { transform: translateY(-4px); opacity: 0.9; }
+  }
+
+  .mmri-match-card {
+    margin-top: 4px;
+    padding: 11px 13px;
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  .mmri-match-card.secondary { opacity: 0.55; }
+
+  .mmri-match-label {
+    color: rgba(255,255,255,0.65);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+  }
+
+  .mmri-match-name {
+    color: var(--gold-bright);
+    font-size: 13.5px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+
+  .mmri-match-conf {
+    color: rgba(255,255,255,0.55);
+    font-size: 11px;
+    margin-top: 1px;
+  }
+
+  .mmri-scope-btn {
+    background: var(--gold-bright);
+    color: var(--maroon-dark);
+    border: none;
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: filter 0.15s;
+  }
+  .mmri-scope-btn:hover { filter: brightness(1.08); }
+
+  .mmri-followups {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .mmri-followup-btn {
+    background: #fff;
+    border: 1.5px solid var(--maroon);
+    border-radius: 11px;
+    color: var(--maroon);
+    padding: 9px 13px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: background 0.15s;
+  }
+  .mmri-followup-btn:hover { background: var(--paper-dim); }
+
   .mmri-input-area {
-    padding: 12px 16px;
-    border-top: 1px solid #333;
+    padding: 13px 14px;
+    border-top: 1px solid var(--line);
     display: flex;
     gap: 8px;
+    background: var(--paper);
   }
 
   .mmri-input-area input {
     flex: 1;
-    background: #2a2a2a;
-    border: 1px solid #444;
-    border-radius: 20px;
-    padding: 10px 16px;
-    color: white;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    padding: 11px 16px;
+    color: var(--ink);
     font-size: 14px;
     outline: none;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: border-color 0.15s;
   }
-
-  .mmri-input-area input::placeholder { color: #666; }
+  .mmri-input-area input:focus { border-color: var(--maroon); }
+  .mmri-input-area input::placeholder { color: #B5AA98; }
 
   .mmri-input-area button {
-    background: #7A003C;
+    background: var(--maroon);
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
   }
-
-  .mmri-input-area button svg { width: 18px; height: 18px; fill: white; }
+  .mmri-input-area button:hover { background: var(--maroon-dark); }
+  .mmri-input-area button svg { width: 17px; height: 17px; fill: var(--gold-bright); }
 </style>
 </head>
 <body>
@@ -145,8 +343,8 @@
 
 <div id="mmri-chat-window">
   <div class="mmri-header">
-    <div>
-      <h3>🔬 ETHOS · MMRI Assistant</h3>
+    <div class="mmri-header-text">
+      <h3><span class="mmri-status-dot"></span>ETHOS</h3>
       <p>McMaster Manufacturing Research Institute</p>
     </div>
     <button class="mmri-close" onclick="toggleChat()">✕</button>
@@ -175,7 +373,7 @@
     if (isOpen) {
       win.classList.add('open');
       if (conversation.length === 0) {
-        addMessage("bot", "Hi there! 👋 I'm ETHOS, the MMRI Assistant at McMaster Manufacturing Research Institute. I'm here to connect you with the right team for your manufacturing challenge.\n\nBefore we get started, could I get your name, company name, and email address?");
+        addMessage("bot", "Hi there! I'm ETHOS, the MMRI Assistant at McMaster Manufacturing Research Institute. This will work like a quick 15-minute consult — I'll ask a few questions to understand your needs and connect you with the right team.\n\nTo get started, could I get your name, company name, and email address?");
       }
     } else {
       win.classList.remove('open');
@@ -196,13 +394,17 @@
 
     let badges = '';
     if (matchLines.length > 0) {
-      badges = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">';
+      badges = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">';
       matchLines.forEach((match, i) => {
-        const opacity = i === 0 ? '1' : '0.6';
-        const label = i === 0 ? '🎯 Best match' : '🔁 Also relevant';
-        badges += `<div style="padding:8px 12px; background:#7A003C; border-radius:8px; color:#FDBF57; font-size:13px; font-weight:bold; opacity:${opacity}; display:flex; justify-content:space-between; align-items:center;">
-          <span>${label}: ${match[1]} | Confidence: ${match[2]}%</span>
-          ${i === 0 ? `<button onclick="downloadScoping('${match[1]}', '${match[2]}')" style="background:#FDBF57; color:#7A003C; border:none; border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; font-weight:bold;">📄 Scoping Doc</button>` : ''}
+        const cardClass = i === 0 ? 'mmri-match-card' : 'mmri-match-card secondary';
+        const label = i === 0 ? 'Best match' : 'Also relevant';
+        badges += `<div class="${cardClass}">
+          <div>
+            <div class="mmri-match-label">${label}</div>
+            <div class="mmri-match-name">${match[1]}</div>
+            <div class="mmri-match-conf">${match[2]}% confidence</div>
+          </div>
+          ${i === 0 ? `<button class="mmri-scope-btn" onclick="downloadScoping('${match[1]}', '${match[2]}')">Scoping Doc</button>` : ''}
         </div>`;
       });
       badges += '</div>';
@@ -210,9 +412,9 @@
 
     let followups = '';
     if (followupLines.length > 0) {
-      followups = '<div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">';
+      followups = '<div class="mmri-followups" style="margin-top:10px;">';
       followupLines.forEach(f => {
-        followups += `<button onclick="answerFollowup('${f[1].replace(/'/g, "\\'")}')" style="background:#2a2a2a; border:1px solid #7A003C; border-radius:12px; color:#FDBF57; padding:8px 12px; font-size:13px; cursor:pointer; text-align:left;">💬 ${f[1]}</button>`;
+        followups += `<button class="mmri-followup-btn" onclick="answerFollowup('${f[1].replace(/'/g, "\\'")}')">${f[1]}</button>`;
       });
       followups += '</div>';
     }
@@ -228,6 +430,16 @@
     return div;
   }
 
+  function addTyping() {
+    const messages = document.getElementById('mmri-messages');
+    const div = document.createElement('div');
+    div.className = 'mmri-typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
   async function sendMessage() {
     const input = document.getElementById('mmri-input');
     const text = input.value.trim();
@@ -237,7 +449,7 @@
     addMessage('user', text);
     conversation.push({ role: 'user', content: text });
 
-    const typing = addMessage('typing', 'ETHOS is thinking... 🔬');
+    const typing = addTyping();
 
     try {
       const response = await fetch(`${API_URL}/api/chat`, {
@@ -259,7 +471,7 @@
   async function answerFollowup(question) {
     addMessage('user', question);
     conversation.push({ role: 'user', content: question });
-    const typing = addMessage('typing', 'ETHOS is thinking... 🔬');
+    const typing = addTyping();
     try {
       const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
@@ -278,7 +490,7 @@
   }
 
   async function downloadScoping(team, confidence) {
-    addMessage('bot', 'Generating your scoping document... 🔬');
+    addMessage('bot', 'Generating your scoping document — this will just take a moment.');
     const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
 
     try {
