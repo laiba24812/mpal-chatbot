@@ -419,11 +419,23 @@
       followups += '</div>';
     }
 
+    let calendlyButton = '';
+    const calendlyMatch = displayText.match(/(https:\/\/calendly\.com\/[^\s)]+)/);
+    if (calendlyMatch) {
+      const link = calendlyMatch[1];
+      displayText = displayText.replace(link, '').trim();
+      calendlyButton = `<div style="margin-top:10px;">
+        <a href="${link}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:var(--maroon); color:#fff; text-decoration:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:600; font-family:'Helvetica Neue', Arial, sans-serif;">
+          📅 Book a Meeting
+        </a>
+      </div>`;
+    }
+
     div.innerHTML = displayText
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/## (.*?)\n/g, '<br><strong>$1</strong><br>')
       .replace(/^- (.*)/gm, '• $1')
-      .replace(/\n/g, '<br>') + badges + followups;
+      .replace(/\n/g, '<br>') + badges + followups + calendlyButton;
 
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
