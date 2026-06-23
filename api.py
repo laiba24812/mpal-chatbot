@@ -222,7 +222,7 @@ def chat():
 
     return jsonify({'response': reply})
 
-@app.route('/api/upload', methods=['POST']
+@app.route ('/api/upload', methods=['POST']
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
@@ -254,6 +254,7 @@ def upload():
     )
 
     return jsonify({'response': response.content[0].text})
+)
 
 @app.route('/api/train', methods=['POST'])
 def train():
@@ -744,7 +745,7 @@ def create_project():
 
     result = create_airtable_record(fields)
     return jsonify({"success": True, "project_code": project_code, "airtable_result": result})
-    
+
 
 @app.route('/api/bob', methods=['POST'])
 def bob():
