@@ -88,7 +88,7 @@ Ask: "Do you have a timeline in mind for when you'd like this completed?"
 Note: this is confidential and only used internally.
 
 STEP 6 — BUDGET (CLIENT ONLY)
-Ask: "Approximately how much is your company looking to invest in this project?"
+Ask: "What budget range are you working with for this project? For example, under $5,000, $5,000–$15,000, $15,000–$50,000, or over $50,000."
 Note: this is confidential and only used internally.
 
 STEP 7 — PROCEED DECISION
