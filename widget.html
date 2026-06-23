@@ -386,6 +386,18 @@
     div.className = `mmri-msg ${role}`;
 
     const matchLines = [...text.matchAll(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/g)];
+    if (matchLines.length > 0 && !window.projectCreated) {
+      window.projectCreated = true;
+      const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
+      fetch(`${API_URL}/api/create-project`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matched_team: matchLines[0][1],
+          conversation_summary: conversationText
+        })
+      }).catch(err => console.error('Failed to create project record:', err));
+    }
     const followupLines = [...text.matchAll(/FOLLOWUP: (.+)/g)];
     let displayText = text
       .replace(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/g, '')

@@ -5,6 +5,22 @@ from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import anthropic
+import requests as http_requests
+
+AIRTABLE_TOKEN = os.environ.get('AIRTABLE_TOKEN')
+AIRTABLE_BASE_ID = 'appRLYp7Q2cfKgwru'
+AIRTABLE_TABLE_NAME = 'Query (1) Table'
+
+def create_airtable_record(fields):
+    url = f"https://api.airtable.com/v0/{AIRTABLE_BASE_ID}/{AIRTABLE_TABLE_NAME}"
+    headers = {
+        "Authorization": f"Bearer {AIRTABLE_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    payload = {"fields": fields}
+    response = http_requests.post(url, headers=headers, json=payload)
+    return response.json()
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -206,7 +222,7 @@ def chat():
 
     return jsonify({'response': reply})
 
-@app.route('/api/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST']
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
@@ -688,6 +704,47 @@ def generate_scoping():
     return send_file(buffer, mimetype='application/pdf',
                     as_attachment=True,
                     download_name=f'MMRI_{doc_label}_{company}_{datetime.now().strftime("%Y%m%d")}.pdf')
+
+
+@app.route('/api/create-project', methods=['POST'])
+def create_project():
+    data = request.json
+    conversation_summary = data.get('conversation_summary', '')
+    matched_team = data.get('matched_team', '')
+
+    extract_response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=512,
+        messages=[{
+            "role": "user",
+            "content": f"From this conversation extract: partner name, company name, email, phone, project description, project type, company size, address if mentioned. Return ONLY raw JSON: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"description\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"address\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+        }]
+    )
+
+    try:
+        raw = extract_response.content[0].text.strip()
+        extracted = json.loads(raw)
+    except:
+        extracted = {}
+
+    project_code = f"PENDING-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+    fields = {
+        "Title": f"{extracted.get('company', 'Unknown')} - {matched_team}",
+        "Project Code": project_code,
+        "Partner": extracted.get('company', 'Unknown'),
+        "Project Description": extracted.get('description', ''),
+        "Sub-Group": matched_team,
+        "Project Status": "Pending Agreement",
+        "Partner Contact Name": extracted.get('name', ''),
+        "Partner Contact Email": extracted.get('email', ''),
+        "Partner Address": extracted.get('address', ''),
+        "Company Size": extracted.get('company_size', ''),
+    }
+
+    result = create_airtable_record(fields)
+    return jsonify({"success": True, "project_code": project_code, "airtable_result": result})
+    
 
 @app.route('/api/bob', methods=['POST'])
 def bob():
