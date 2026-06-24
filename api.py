@@ -747,8 +747,10 @@ def create_project():
 
     try:
         raw = extract_response.content[0].text.strip()
+        raw = raw.replace('```json', '').replace('```', '').strip()
         extracted = json.loads(raw)
-    except:
+    except Exception as e:
+        print(f"Extraction parsing failed: {e}")
         extracted = {}
 
     project_code = f"PENDING-{datetime.now().strftime('%Y%m%d%H%M%S')}"
