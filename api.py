@@ -277,7 +277,7 @@ def upload():
     )
 
     return jsonify({'response': response.content[0].text})
-)
+
 
 @app.route('/api/train', methods=['POST'])
 def train():
