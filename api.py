@@ -245,7 +245,7 @@ def chat():
 
     return jsonify({'response': reply})
 
-@app.route ('/api/upload', methods=['POST']
+@app.route ('/api/upload', methods=['POST'])
 def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
