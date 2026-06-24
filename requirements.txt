@@ -10,3 +10,5 @@ anthropic
 python-dotenv
 gunicorn
 reportlab
+psycopg2-binary
+
