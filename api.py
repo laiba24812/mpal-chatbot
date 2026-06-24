@@ -7,6 +7,29 @@ from flask_cors import CORS
 import anthropic
 import requests as http_requests
 
+import psycopg2
+import os
+
+SUPABASE_DB_URL = os.environ.get('SUPABASE_DB_URL')
+
+def get_db_connection():
+    return psycopg2.connect(SUPABASE_DB_URL)
+
+def create_project_record(fields):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    columns = ', '.join(f'"{k}"' for k in fields.keys())
+    placeholders = ', '.join(['%s'] * len(fields))
+    values = list(fields.values())
+    
+    query = f'INSERT INTO "MMRI Database" ({columns}) VALUES ({placeholders})'
+    
+    cur.execute(query, values)
+    conn.commit()
+    cur.close()
+    conn.close()
+
 AIRTABLE_TOKEN = os.environ.get('AIRTABLE_TOKEN')
 AIRTABLE_BASE_ID = 'appRLYp7Q2cfKgwru'
 AIRTABLE_TABLE_NAME = 'Query (1) Table'
@@ -743,8 +766,8 @@ def create_project():
         "Company Size": extracted.get('company_size', ''),
     }
 
-    result = create_airtable_record(fields)
-    return jsonify({"success": True, "project_code": project_code, "airtable_result": result})
+    create_project_record(fields)
+    return jsonify({"success": True, "project_code": project_code})
 
 
 @app.route('/api/bob', methods=['POST'])
