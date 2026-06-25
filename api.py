@@ -16,19 +16,29 @@ def get_db_connection():
     return psycopg2.connect(SUPABASE_DB_URL)
 
 def create_project_record(fields):
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    columns = ', '.join(f'"{k}"' for k in fields.keys())
-    placeholders = ', '.join(['%s'] * len(fields))
-    values = list(fields.values())
-    
-    query = f'INSERT INTO "MMRI Database" ({columns}) VALUES ({placeholders})'
-    
-    cur.execute(query, values)
-    conn.commit()
-    cur.close()
-    conn.close()
+    conn = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        columns = ', '.join(f'"{k}"' for k in fields.keys())
+        placeholders = ', '.join(['%s'] * len(fields))
+        values = list(fields.values())
+        
+        query = f'INSERT INTO "MMRI Database" ({columns}) VALUES ({placeholders})'
+        
+        cur.execute(query, values)
+        conn.commit()
+        cur.close()
+        return True
+    except Exception as e:
+        print(f"Database write failed: {e}")
+        if conn:
+            conn.rollback()
+        return False
+    finally:
+        if conn:
+            conn.close()
 
 AIRTABLE_TOKEN = os.environ.get('AIRTABLE_TOKEN')
 AIRTABLE_BASE_ID = 'appRLYp7Q2cfKgwru'
@@ -181,9 +191,13 @@ If they want to correct anything, update it and re-confirm before moving on.
 STEP 13 — CLIENT APPROVAL
 Once confirmed, ask: "Great — are you ready to move forward?"
 - If YES:
-  - If project type is "Funded" → say: "Wonderful! Since this is a funded project, the next step is putting together a funding proposal. Let's get a meeting scheduled with our team to start that process. You can pick a time that works for you here: https://calendly.com/yousafzl-mcmaster/mmri-intro-call-15-min" Then say: "Once you've booked a time, our team will be ready to walk through the funding proposal process with you. You'll also receive a copy of this summary by email from our team shortly." Then output the MATCH and FOLLOWUP tags below.
-  - If project type is "Fee-for-Service" → say: "Wonderful! Let's get a meeting scheduled with our team to kick off the project. You can pick a time that works for you here: https://calendly.com/yousafzl-mcmaster/mmri-intro-call-15-min" Then say: "Once you've booked a time, our team will be ready to get started. You'll also receive a copy of this summary by email from our team shortly." Then output the MATCH and FOLLOWUP tags below.
-  - If NO → ask: "No problem — what would you like to adjust about the quote or proposal?" Take their feedback, update the relevant details, then return to Step 10 (Quote) to regenerate and re-confirm before asking for approval again.
+  - Determine the booking link based on the matched team:
+    - If matched team is MSL → use link: https://calendly.com/PLACEHOLDER-MSL
+    - If matched team is CBM → use link: https://calendly.com/PLACEHOLDER-CBM
+    - If matched team is MPAL → use link: https://calendly.com/PLACEHOLDER-MPAL
+  - If project type is "Funded" → say: "Wonderful! Since this is a funded project, the next step is putting together a funding proposal. Let's get a meeting scheduled with our team to start that process. You can pick a time that works for you here: [insert the correct link based on matched team]" Then say: "Once you've booked a time, our team will be ready to walk through the funding proposal process with you. You'll also receive a copy of this summary by email from our team shortly." Then output the MATCH and FOLLOWUP tags below.
+  - If project type is "Fee-for-Service" → say: "Wonderful! Let's get a meeting scheduled with our team to kick off the project. You can pick a time that works for you here: [insert the correct link based on matched team]" Then say: "Once you've booked a time, our team will be ready to get started. You'll also receive a copy of this summary by email from our team shortly." Then output the MATCH and FOLLOWUP tags below.
+- If NO → say: "No problem at all. Thank you for your time and we hope to work with you in the future." Do not output MATCH or FOLLOWUP tags in this case.
 
 LANGUAGE RULES:
 - Never say: CBM, MSL, MPAL, OEE, FMEA, KPI, predictive maintenance, condition monitoring
@@ -763,6 +777,7 @@ def create_project():
     "Partner": extracted.get('company', 'Unknown'),
     "Project Description": extracted.get('description', ''),
     "Start Date": datetime.now().strftime('%Y-%m-%d'),
+    "Program Type": extracted.get('project_type', ''),
     "Sub-Group": matched_team,
     "Project Status": "Pending Agreement",
     "Partner Contact Name": extracted.get('name', ''),
@@ -771,8 +786,8 @@ def create_project():
     "Company Size": extracted.get('company_size', ''),
 }
 
-    create_project_record(fields)
-    return jsonify({"success": True, "project_code": project_code})
+    db_success = create_project_record(fields)
+    return jsonify({"success": db_success, "project_code": project_code})
 
 
 @app.route('/api/bob', methods=['POST'])
