@@ -5,64 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MMRI Training Agent</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-  body { background: #1a1a1a; color: white; padding: 40px; }
-  
+  :root {
+    --maroon: #7A003C;
+    --maroon-dark: #5c002d;
+    --gold: #D4A24C;
+    --gold-bright: #FDBF57;
+    --paper: #FAF7F2;
+    --paper-dim: #F1ECE3;
+    --ink: #2B2420;
+    --ink-soft: #6B6258;
+    --line: #E3DACB;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 32px;
+    min-height: 100vh;
+  }
+
   .header {
-    background: #7A003C;
-    padding: 24px 30px;
-    border-radius: 12px;
-    margin-bottom: 30px;
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding: 26px 30px;
+    border-radius: 14px;
+    margin-bottom: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(122,0,60,0.18);
   }
-  
-  .header h1 { color: #FDBF57; font-size: 22px; }
-  .header p { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 4px; }
 
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-bright), var(--gold), var(--gold-bright));
+  }
+
+  .header h1 {
+    font-family: 'Georgia', serif;
+    color: var(--gold-bright);
+    font-size: 21px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header p {
+    color: rgba(255,255,255,0.72);
+    font-size: 12.5px;
+    margin-top: 5px;
+    letter-spacing: 0.2px;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 
   .card {
-    background: #2a2a2a;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 14px;
     padding: 24px;
-    border: 1px solid #444;
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(43,36,32,0.04);
   }
 
-  .card h2 { color: #FDBF57; font-size: 16px; margin-bottom: 16px; }
+  .card h2 {
+    color: var(--maroon);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
 
   .upload-area {
-    border: 2px dashed #7A003C;
-    border-radius: 8px;
-    padding: 40px 20px;
+    border: 2px dashed var(--maroon);
+    border-radius: 10px;
+    padding: 36px 20px;
     text-align: center;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s;
+    background: var(--paper-dim);
   }
 
-  .upload-area:hover { background: #333; }
-  .upload-area p { color: #999; font-size: 14px; margin-top: 8px; }
+  .upload-area:hover { background: #efe6da; border-color: var(--maroon-dark); }
+  .upload-area p { color: var(--ink-soft); font-size: 13.5px; margin-top: 8px; }
 
   .upload-btn {
-    background: #7A003C;
-    color: #FDBF57;
+    background: var(--maroon);
+    color: var(--gold-bright);
     border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 14px;
+    border-radius: 9px;
+    padding: 11px 20px;
+    font-size: 13.5px;
+    font-weight: 600;
     cursor: pointer;
     margin-top: 16px;
     width: 100%;
+    transition: background 0.15s;
   }
 
-  .upload-btn:hover { background: #9a0050; }
+  .upload-btn:hover { background: var(--maroon-dark); }
 
-  .doc-list { display: flex; flex-direction: column; gap: 10px; }
+  .doc-list { display: flex; flex-direction: column; gap: 9px; }
 
   .doc-item {
-    background: #333;
-    border-radius: 8px;
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    border-radius: 10px;
     padding: 12px 16px;
     display: flex;
     align-items: center;
@@ -70,44 +127,52 @@
     font-size: 13px;
   }
 
-  .doc-item span { color: #ccc; }
-  .doc-item .doc-name { color: white; font-weight: bold; }
+  .doc-item span { color: var(--ink-soft); font-size: 12px; }
+  .doc-item .doc-name { color: var(--ink); font-weight: 600; }
 
   .delete-btn {
     background: none;
-    border: 1px solid #7A003C;
-    color: #ff6b6b;
-    border-radius: 6px;
-    padding: 4px 10px;
+    border: 1.5px solid var(--maroon);
+    color: var(--maroon);
+    border-radius: 7px;
+    padding: 5px 11px;
     font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.15s;
   }
+  .delete-btn:hover { background: var(--paper-dim); }
 
   .status {
-    margin-top: 16px;
-    padding: 12px;
-    border-radius: 8px;
+    margin-top: 14px;
+    padding: 11px 14px;
+    border-radius: 9px;
     font-size: 13px;
     display: none;
+    font-weight: 500;
   }
 
-  .status.success { background: #1a3a1a; color: #4caf50; display: block; }
-  .status.error { background: #3a1a1a; color: #ff6b6b; display: block; }
-  .status.loading { background: #2a2a3a; color: #FDBF57; display: block; }
+  .status.success { background: #E8F3E8; color: #2E7D32; display: block; border: 1px solid #C5E1C5; }
+  .status.error { background: #FBEAEA; color: #C0392B; display: block; border: 1px solid #F0CACA; }
+  .status.loading { background: var(--paper-dim); color: var(--maroon); display: block; border: 1px solid var(--line); }
 
   .knowledge-preview {
-    background: #1a1a1a;
-    border-radius: 8px;
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    border-radius: 10px;
     padding: 16px;
-    font-size: 12px;
-    color: #999;
+    font-size: 12.5px;
+    color: var(--ink-soft);
     max-height: 200px;
     overflow-y: auto;
-    line-height: 1.6;
-    margin-top: 12px;
+    line-height: 1.65;
+    margin-top: 10px;
   }
 
-  .empty-state { color: #666; font-size: 13px; text-align: center; padding: 20px; }
+  .knowledge-preview::-webkit-scrollbar { width: 6px; }
+  .knowledge-preview::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  .empty-state { color: #B5AA98; font-size: 13px; text-align: center; padding: 18px; }
 </style>
 </head>
 <body>
@@ -124,9 +189,9 @@
   <div class="card">
     <h2>📤 Upload Document</h2>
     <div class="upload-area" onclick="document.getElementById('file-input').click()">
-      <div style="font-size: 32px;">📄</div>
+      <div style="font-size: 30px;">📄</div>
       <p>Click to upload a PDF or Word document</p>
-      <p style="font-size: 12px; margin-top: 4px;">Reports, success stories, project docs</p>
+      <p style="font-size: 11.5px; margin-top: 4px;">Reports, success stories, project docs</p>
       <input type="file" id="file-input" accept=".pdf,.docx" style="display:none;" onchange="uploadDoc()" />
     </div>
     <div id="upload-status" class="status"></div>
@@ -136,7 +201,7 @@
   <!-- Knowledge base preview -->
   <div class="card">
     <h2>🔍 Knowledge Base Preview</h2>
-    <p style="font-size: 13px; color: #999;">What ETHOS currently knows:</p>
+    <p style="font-size: 12.5px; color: var(--ink-soft);">What ETHOS currently knows:</p>
     <div class="knowledge-preview" id="knowledge-preview">
       Loading knowledge base...
     </div>
