@@ -756,17 +756,18 @@ def create_project():
     project_code = f"PENDING-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
     fields = {
-        "Title": f"{extracted.get('company', 'Unknown')} - {matched_team}",
-        "Project Code": project_code,
-        "Partner": extracted.get('company', 'Unknown'),
-        "Project Description": extracted.get('description', ''),
-        "Sub-Group": matched_team,
-        "Project Status": "Pending Agreement",
-        "Partner Contact Name": extracted.get('name', ''),
-        "Partner Contact Email": extracted.get('email', ''),
-        "Partner Address": extracted.get('address', ''),
-        "Company Size": extracted.get('company_size', ''),
-    }
+    "Title": f"{extracted.get('company', 'Unknown')} - {matched_team}",
+    "Project Code": project_code,
+    "Partner": extracted.get('company', 'Unknown'),
+    "Project Description": extracted.get('description', ''),
+    "Start Date": datetime.now().strftime('%Y-%m-%d'),
+    "Sub-Group": matched_team,
+    "Project Status": "Pending Agreement",
+    "Partner Contact Name": extracted.get('name', ''),
+    "Partner Contact Email": extracted.get('email', ''),
+    "Partner Address": extracted.get('address', ''),
+    "Company Size": extracted.get('company_size', ''),
+}
 
     create_project_record(fields)
     return jsonify({"success": True, "project_code": project_code})
