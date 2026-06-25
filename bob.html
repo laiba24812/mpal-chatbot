@@ -5,136 +5,274 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BOB · MMRI Internal Assistant</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+  :root {
+    --maroon: #7A003C;
+    --maroon-dark: #5c002d;
+    --gold: #D4A24C;
+    --gold-bright: #FDBF57;
+    --paper: #FAF7F2;
+    --paper-dim: #F1ECE3;
+    --ink: #2B2420;
+    --ink-soft: #6B6258;
+    --line: #E3DACB;
+  }
 
-  body { background: #1a1a1a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: transparent; }
 
   #bob-chat-bubble {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    width: 60px;
-    height: 60px;
-    background: #2a2a7a;
+    width: 62px;
+    height: 62px;
+    background: var(--maroon);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 20px rgba(122,0,60,0.35);
     z-index: 9999;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  #bob-chat-bubble svg { width: 28px; height: 28px; fill: white; }
+  #bob-chat-bubble:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 26px rgba(122,0,60,0.45);
+  }
+
+  #bob-chat-bubble::before {
+    content: '';
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    border: 1.5px solid var(--gold-bright);
+    opacity: 0;
+    animation: bob-pulse 2.6s ease-out infinite;
+  }
+
+  @keyframes bob-pulse {
+    0% { opacity: 0.55; transform: scale(0.92); }
+    70% { opacity: 0; transform: scale(1.18); }
+    100% { opacity: 0; transform: scale(1.18); }
+  }
+
+  #bob-chat-bubble svg { width: 26px; height: 26px; fill: var(--gold-bright); position: relative; z-index: 1; }
 
   #bob-chat-window {
     position: fixed;
-    bottom: 100px;
+    bottom: 102px;
     right: 24px;
     width: 400px;
     height: 560px;
-    background: #1a1a1a;
-    border-radius: 16px;
+    background: var(--paper);
+    border-radius: 18px;
     display: none;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    box-shadow: 0 18px 50px rgba(43,36,32,0.28), 0 2px 8px rgba(43,36,32,0.12);
     z-index: 9998;
+    border: 1px solid var(--line);
   }
 
-  #bob-chat-window.open { display: flex; }
+  #bob-chat-window.open {
+    display: flex;
+    animation: bob-rise 0.28s cubic-bezier(0.16,1,0.3,1);
+  }
+
+  @keyframes bob-rise {
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
 
   .bob-header {
-    background: #2a2a7a;
-    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding: 18px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    overflow: hidden;
   }
 
-  .bob-header h3 { color: #a0a0ff; font-size: 16px; margin: 0; }
-  .bob-header p { color: rgba(255,255,255,0.7); font-size: 12px; margin: 0; }
+  .bob-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-bright), var(--gold), var(--gold-bright));
+  }
+
+  .bob-header-text h3 {
+    font-family: 'Georgia', serif;
+    color: var(--gold-bright);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .bob-status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6FCF97;
+    box-shadow: 0 0 0 2px rgba(111,207,151,0.25);
+    flex-shrink: 0;
+  }
+
+  .bob-header-text p {
+    color: rgba(255,255,255,0.72);
+    font-size: 11.5px;
+    margin-top: 3px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    letter-spacing: 0.2px;
+  }
 
   .bob-close {
-    background: none;
+    background: rgba(255,255,255,0.1);
     border: none;
-    color: white;
-    font-size: 20px;
+    color: rgba(255,255,255,0.85);
+    font-size: 15px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    font-family: Arial, sans-serif;
   }
+  .bob-close:hover { background: rgba(255,255,255,0.22); }
 
   .bob-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 18px 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(122,0,60,0.025) 0%, transparent 55%),
+      var(--paper);
   }
+
+  .bob-messages::-webkit-scrollbar { width: 6px; }
+  .bob-messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
   .bob-msg {
     max-width: 85%;
-    padding: 10px 14px;
-    border-radius: 12px;
+    padding: 11px 15px;
+    border-radius: 14px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.55;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    animation: bob-msg-in 0.22s ease;
+  }
+
+  @keyframes bob-msg-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .bob-msg.bot {
-    background: #2a2a3a;
-    color: white;
+    background: #ffffff;
+    color: var(--ink);
     align-self: flex-start;
+    border: 1px solid var(--line);
     border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(43,36,32,0.04);
   }
 
   .bob-msg.user {
-    background: #2a2a7a;
-    color: white;
+    background: var(--maroon);
+    color: #fff;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
   }
 
-  .bob-msg.typing {
-    background: #2a2a3a;
-    color: #999;
+  .bob-typing {
     align-self: flex-start;
-    font-style: italic;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    padding: 13px 16px;
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
   }
 
+  .bob-typing span {
+    width: 6px; height: 6px;
+    background: var(--maroon);
+    border-radius: 50%;
+    opacity: 0.35;
+    animation: bob-bounce 1.1s infinite ease-in-out;
+  }
+  .bob-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .bob-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bob-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
+    40% { transform: translateY(-4px); opacity: 0.9; }
+  }
+
+  .bob-report-btn {
+    background: var(--gold-bright);
+    color: var(--maroon-dark);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 13px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: filter 0.15s;
+  }
+  .bob-report-btn:hover { filter: brightness(1.08); }
+
   .bob-input-area {
-    padding: 12px 16px;
-    border-top: 1px solid #333;
+    padding: 13px 14px;
+    border-top: 1px solid var(--line);
     display: flex;
     gap: 8px;
+    background: var(--paper);
   }
 
   .bob-input-area input {
     flex: 1;
-    background: #2a2a3a;
-    border: 1px solid #444;
-    border-radius: 20px;
-    padding: 10px 16px;
-    color: white;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    padding: 11px 16px;
+    color: var(--ink);
     font-size: 14px;
     outline: none;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: border-color 0.15s;
   }
-
-  .bob-input-area input::placeholder { color: #666; }
+  .bob-input-area input:focus { border-color: var(--maroon); }
+  .bob-input-area input::placeholder { color: #B5AA98; }
 
   .bob-input-area button {
-    background: #2a2a7a;
+    background: var(--maroon);
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
   }
-
-  .bob-input-area button svg { width: 18px; height: 18px; fill: white; }
+  .bob-input-area button:hover { background: var(--maroon-dark); }
+  .bob-input-area button svg { width: 17px; height: 17px; fill: var(--gold-bright); }
 </style>
 </head>
 <body>
@@ -147,9 +285,9 @@
 
 <div id="bob-chat-window">
   <div class="bob-header">
-    <div>
-      <h3>🤖 BOB · Internal Assistant</h3>
-      <p>MMRI Staff Only · Ask me anything about partners & projects</p>
+    <div class="bob-header-text">
+      <h3><span class="bob-status-dot"></span>BOB</h3>
+      <p>MMRI Staff Only · Ask me about partners & projects</p>
     </div>
     <button class="bob-close" onclick="toggleBob()">✕</button>
   </div>
@@ -178,7 +316,7 @@
     if (isOpen) {
       win.classList.add('open');
       if (conversation.length === 0) {
-        addMessage("bot", "Hi! 👋 I'm BOB, your internal MMRI assistant. I can help you find info about partners, past projects, and internal documents.\n\nWhat would you like to know?");
+        addMessage("bot", "Hi! I'm BOB, your internal MMRI assistant. I can help you find info about partners, past projects, and internal documents.\n\nWhat would you like to know?");
       }
     } else {
       win.classList.remove('open');
@@ -196,11 +334,21 @@
 
     if (showReport) {
       content += `<div style="margin-top:10px;">
-        <button onclick="downloadReport('${encodeURIComponent(text)}')" style="background:#2a2a7a; border:none; border-radius:8px; color:#a0a0ff; padding:8px 12px; font-size:13px; cursor:pointer; font-weight:bold;">📄 Generate Report</button>
+        <button class="bob-report-btn" onclick="downloadReport('${encodeURIComponent(text)}')">📄 Generate Report</button>
       </div>`;
     }
 
     div.innerHTML = content;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
+  }
+
+  function addTyping() {
+    const messages = document.getElementById('bob-messages');
+    const div = document.createElement('div');
+    div.className = 'bob-typing';
+    div.innerHTML = '<span></span><span></span><span></span>';
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
     return div;
@@ -215,7 +363,7 @@
     addMessage('user', text);
     conversation.push({ role: 'user', content: text });
 
-    const typing = addMessage('typing', 'BOB is searching... 🔍');
+    const typing = addTyping();
 
     try {
       const response = await fetch(`${API_URL}/api/bob`, {
