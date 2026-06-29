@@ -364,6 +364,7 @@
 
 <script>
   const API_URL = "https://mpal-chatbot.onrender.com";
+  const CALENDLY_LINK = "https://calendly.com/yousafzl-mcmaster/mmri-intro-call-15-min";
   let conversation = [];
   let isOpen = false;
 
@@ -432,12 +433,10 @@
     }
 
     let calendlyButton = '';
-    const calendlyMatch = displayText.match(/(https:\/\/calendly\.com\/[^\s)]+)/);
-    if (calendlyMatch) {
-      const link = calendlyMatch[1];
-      displayText = displayText.replace(link, '').trim();
+    displayText = displayText.replace(/https:\/\/calendly\.com\/[^\s)]+/g, '').trim();
+    if (matchLines.length > 0) {
       calendlyButton = `<div style="margin-top:10px;">
-        <a href="${link}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:var(--maroon); color:#fff; text-decoration:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:600; font-family:'Helvetica Neue', Arial, sans-serif;">
+        <a href="${CALENDLY_LINK}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:var(--maroon); color:#fff; text-decoration:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:600; font-family:'Helvetica Neue', Arial, sans-serif;">
           📅 Book a Meeting
         </a>
       </div>`;
