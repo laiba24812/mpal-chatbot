@@ -433,8 +433,7 @@
     }
 
     let calendlyButton = '';
-    displayText = displayText.replace(/https:\/\/calendly\.com\/[^\s)]+/g, '').trim();
-    if (matchLines.length > 0) {
+      displayText = displayText.replace(/https:\/\/calendly\.com\/[^\s)]+/g, '').replace(/\*\*/g, '').trim();    if (matchLines.length > 0) {
       calendlyButton = `<div style="margin-top:10px;">
         <a href="${CALENDLY_LINK}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:var(--maroon); color:#fff; text-decoration:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:600; font-family:'Helvetica Neue', Arial, sans-serif;">
           📅 Book a Meeting
