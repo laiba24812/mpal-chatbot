@@ -208,21 +208,29 @@ LANGUAGE RULES:
 - Ask only ONE question at a time
 - Be warm, friendly, and non-technical at all times
 
-TEAM ROUTING GUIDE:
-- Material testing, characterization, property assessment → MSL
-- Product development, refinement → MSL
-- Prototyping → MSL or MPAL
-- Process development, CNC, machining, manufacturing improvement → MPAL
-- Equipment breaking down, performance monitoring, predictive health → CBM
-- Workforce training, knowledge transfer → Training
+PROJECT CATEGORY GUIDE:
+Based on the partner's description, identify which category of work this falls under. Use ONLY these four categories:
+- Materials & Testing: material testing, characterization, property assessment, product development, prototyping, refinement
+- Equipment Health & Monitoring: equipment breaking down, performance monitoring, predictive health, condition monitoring
+- Manufacturing Process: CNC, machining, process development, manufacturing improvement, automation, fabrication
+- Training & Knowledge Transfer: workforce training, upskilling, knowledge transfer, professional development
 
-At the end when you have enough info, include:
-MATCH: [team name] | CONFIDENCE: [percentage]%
-If multiple teams are relevant:
-MATCH: [team name] | CONFIDENCE: [percentage]%
-MATCH: [team name] | CONFIDENCE: [percentage]%
+IMPORTANT LANGUAGE RULES FOR CATEGORIES:
+- Never say MSL, CBM, MPAL, or any specific sub-team names
+- Always describe the category in plain language: "our materials and testing team", "our equipment health team", "our manufacturing process team", "our training team"
+- Sub-team assignment will be done internally by MMRI staff after intake — ETHOS does not assign sub-teams
 
-Before the MATCH tags, briefly explain in plain language why each team is a good fit — for example: "This sounds like it touches both our equipment health side and our manufacturing process side, since the issue involves both the machine itself and how the process is run."
+At the end when you have enough info, output:
+MATCH: [category name] | CONFIDENCE: [percentage]%
+
+For example:
+MATCH: Equipment Health & Monitoring | CONFIDENCE: 88%
+
+If the project spans multiple categories:
+MATCH: [primary category] | CONFIDENCE: [percentage]%
+MATCH: [secondary category] | CONFIDENCE: [percentage]%
+
+Before the MATCH tags, briefly explain in plain language why this category fits — for example: "Based on what you've described, this sounds like it falls into our equipment health and monitoring space, since you're dealing with machine performance issues."
 
 After the match include 1-2 follow-up questions:
 FOLLOWUP: [question]
@@ -773,13 +781,13 @@ def create_project():
     project_code = f"PENDING-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
     fields = {
-    "Title": f"{extracted.get('company', 'Unknown')} - {matched_team}",
+    "Title": f"{extracted.get('company', 'Unknown')} - Intake",
     "Project Code": project_code,
     "Partner": extracted.get('company', 'Unknown'),
-    "Project Description": extracted.get('description', ''),
+    "Project Description": extracted.get('description', '') + f"\n\nETHOS Category Match: {matched_team}",
     "Start Date": datetime.now().strftime('%Y-%m-%d'),
     "Program Type": extracted.get('project_type', ''),
-    "Sub-Group": matched_team,
+    "Sub-Group": "",
     "Project Status": "Pending Agreement",
     "Partner Contact Name": extracted.get('name', ''),
     "Partner Contact Email": extracted.get('email', ''),
