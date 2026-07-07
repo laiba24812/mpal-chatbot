@@ -386,7 +386,7 @@
     const div = document.createElement('div');
     div.className = `mmri-msg ${role}`;
 
-    const matchLines = [...text.matchAll(/MATCH: (\w+) \| CONFIDENCE: (\d+)%/g)];
+    const matchLines = [...text.matchAll(/MATCH: ([^|]+?)\s*\|\s*CONFIDENCE: (\d+)%/g)];
     if (matchLines.length > 0 && !window.projectCreated) {
       window.projectCreated = true;
       const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
