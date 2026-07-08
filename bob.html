@@ -6,19 +6,19 @@
 <title>BOB · MMRI Internal Assistant</title>
 <style>
   :root {
-    --maroon: #7A003C;
-    --maroon-dark: #5c002d;
-    --gold: #D4A24C;
-    --gold-bright: #FDBF57;
-    --paper: #FAF7F2;
-    --paper-dim: #F1ECE3;
-    --ink: #2B2420;
-    --ink-soft: #6B6258;
-    --line: #E3DACB;
+    --navy: #1B2A4A;
+    --navy-dark: #111D33;
+    --blue: #2C4A7C;
+    --blue-light: #5B8DB8;
+    --accent: #7BAFD4;
+    --paper: #F4F7FB;
+    --paper-dim: #E8EDF5;
+    --ink: #1B2A4A;
+    --ink-soft: #4A5568;
+    --line: #CBD5E0;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body { background: transparent; }
 
   #bob-chat-bubble {
@@ -27,20 +27,20 @@
     right: 24px;
     width: 62px;
     height: 62px;
-    background: var(--maroon);
+    background: var(--navy);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 20px rgba(122,0,60,0.35);
+    box-shadow: 0 6px 20px rgba(27,42,74,0.4);
     z-index: 9999;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
   #bob-chat-bubble:hover {
     transform: scale(1.06);
-    box-shadow: 0 8px 26px rgba(122,0,60,0.45);
+    box-shadow: 0 8px 26px rgba(27,42,74,0.55);
   }
 
   #bob-chat-bubble::before {
@@ -48,7 +48,7 @@
     position: absolute;
     inset: -5px;
     border-radius: 50%;
-    border: 1.5px solid var(--gold-bright);
+    border: 1.5px solid var(--accent);
     opacity: 0;
     animation: bob-pulse 2.6s ease-out infinite;
   }
@@ -59,7 +59,7 @@
     100% { opacity: 0; transform: scale(1.18); }
   }
 
-  #bob-chat-bubble svg { width: 26px; height: 26px; fill: var(--gold-bright); position: relative; z-index: 1; }
+  #bob-chat-bubble svg { width: 26px; height: 26px; fill: var(--accent); position: relative; z-index: 1; }
 
   #bob-chat-window {
     position: fixed;
@@ -72,7 +72,7 @@
     display: none;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 18px 50px rgba(43,36,32,0.28), 0 2px 8px rgba(43,36,32,0.12);
+    box-shadow: 0 18px 50px rgba(27,42,74,0.22), 0 2px 8px rgba(27,42,74,0.1);
     z-index: 9998;
     border: 1px solid var(--line);
   }
@@ -88,7 +88,7 @@
   }
 
   .bob-header {
-    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
     padding: 18px 20px;
     display: flex;
     align-items: center;
@@ -102,12 +102,12 @@
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--gold-bright), var(--gold), var(--gold-bright));
+    background: linear-gradient(90deg, var(--accent), var(--blue-light), var(--accent));
   }
 
   .bob-header-text h3 {
     font-family: 'Georgia', serif;
-    color: var(--gold-bright);
+    color: var(--accent);
     font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.3px;
@@ -125,11 +125,10 @@
   }
 
   .bob-header-text p {
-    color: rgba(255,255,255,0.72);
+    color: rgba(255,255,255,0.65);
     font-size: 11.5px;
     margin-top: 3px;
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    letter-spacing: 0.2px;
   }
 
   .bob-close {
@@ -156,7 +155,7 @@
     flex-direction: column;
     gap: 14px;
     background:
-      radial-gradient(circle at 100% 0%, rgba(122,0,60,0.025) 0%, transparent 55%),
+      radial-gradient(circle at 100% 0%, rgba(27,42,74,0.03) 0%, transparent 55%),
       var(--paper);
   }
 
@@ -184,11 +183,11 @@
     align-self: flex-start;
     border: 1px solid var(--line);
     border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 2px rgba(43,36,32,0.04);
+    box-shadow: 0 1px 2px rgba(27,42,74,0.06);
   }
 
   .bob-msg.user {
-    background: var(--maroon);
+    background: var(--navy);
     color: #fff;
     align-self: flex-end;
     border-bottom-right-radius: 4px;
@@ -208,7 +207,7 @@
 
   .bob-typing span {
     width: 6px; height: 6px;
-    background: var(--maroon);
+    background: var(--blue);
     border-radius: 50%;
     opacity: 0.35;
     animation: bob-bounce 1.1s infinite ease-in-out;
@@ -222,8 +221,8 @@
   }
 
   .bob-report-btn {
-    background: var(--gold-bright);
-    color: var(--maroon-dark);
+    background: var(--accent);
+    color: var(--navy-dark);
     border: none;
     border-radius: 8px;
     padding: 8px 13px;
@@ -255,11 +254,11 @@
     font-family: 'Helvetica Neue', Arial, sans-serif;
     transition: border-color 0.15s;
   }
-  .bob-input-area input:focus { border-color: var(--maroon); }
-  .bob-input-area input::placeholder { color: #B5AA98; }
+  .bob-input-area input:focus { border-color: var(--blue); }
+  .bob-input-area input::placeholder { color: #A0AEC0; }
 
   .bob-input-area button {
-    background: var(--maroon);
+    background: var(--navy);
     border: none;
     border-radius: 50%;
     width: 42px;
@@ -271,8 +270,8 @@
     flex-shrink: 0;
     transition: background 0.15s;
   }
-  .bob-input-area button:hover { background: var(--maroon-dark); }
-  .bob-input-area button svg { width: 17px; height: 17px; fill: var(--gold-bright); }
+  .bob-input-area button:hover { background: var(--navy-dark); }
+  .bob-input-area button svg { width: 17px; height: 17px; fill: var(--accent); }
 </style>
 </head>
 <body>
@@ -308,7 +307,6 @@
   const API_URL = "https://mpal-chatbot.onrender.com";
   let conversation = [];
   let isOpen = false;
-  let lastBobResponse = '';
 
   function toggleBob() {
     isOpen = !isOpen;
@@ -374,7 +372,6 @@
       const data = await response.json();
       typing.remove();
       const reply = data.response;
-      lastBobResponse = reply;
       addMessage('bot', reply, true);
       conversation.push({ role: 'assistant', content: reply });
     } catch (err) {
