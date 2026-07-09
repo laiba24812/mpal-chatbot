@@ -23,6 +23,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: transparent; font-family: 'Helvetica Neue', Arial, sans-serif; }
 
+  /* ── Bubble ── */
   #ethos-bubble {
     position: fixed; bottom: 24px; right: 24px;
     width: 64px; height: 64px;
@@ -48,10 +49,12 @@
     100% { opacity: 0; }
   }
   #ethos-bubble svg { width: 28px; height: 28px; fill: var(--gold-bright); position: relative; z-index: 1; }
+  #ethos-bubble .bubble-icon { transition: opacity 0.2s; }
 
+  /* ── Window ── */
   #ethos-window {
     position: fixed; bottom: 104px; right: 24px;
-    width: 390px; height: 600px;
+    width: 390px; height: 620px;
     background: var(--paper); border-radius: 20px;
     display: none; flex-direction: column; overflow: hidden;
     box-shadow: 0 24px 60px rgba(43,36,32,0.22), 0 4px 12px rgba(43,36,32,0.1);
@@ -63,6 +66,43 @@
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* ── Splash screen ── */
+  #ethos-splash {
+    position: absolute; inset: 0; z-index: 10;
+    background: linear-gradient(160deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; border-radius: 20px;
+    animation: splash-in 0.35s cubic-bezier(0.16,1,0.3,1);
+  }
+  #ethos-splash.hiding { animation: splash-out 0.4s cubic-bezier(0.4,0,1,1) forwards; }
+  @keyframes splash-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes splash-out { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(1.04); } }
+  .splash-logo {
+    width: 72px; height: 72px;
+    background: rgba(253,191,87,0.12);
+    border: 2px solid rgba(253,191,87,0.35);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    animation: logo-pulse 2s ease-in-out infinite;
+  }
+  @keyframes logo-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(253,191,87,0.2); }
+    50% { box-shadow: 0 0 0 12px rgba(253,191,87,0); }
+  }
+  .splash-logo svg { width: 36px; height: 36px; fill: var(--gold-bright); }
+  .splash-title { font-family: 'Georgia', serif; color: var(--gold-bright); font-size: 28px; font-weight: 600; }
+  .splash-sub { color: rgba(255,255,255,0.65); font-size: 13px; text-align: center; max-width: 240px; line-height: 1.5; }
+  .splash-divider { width: 40px; height: 1.5px; background: rgba(253,191,87,0.3); border-radius: 2px; }
+  .splash-btn {
+    background: var(--gold-bright); color: var(--maroon-dark);
+    border: none; border-radius: 24px; padding: 12px 28px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    margin-top: 8px; transition: transform 0.15s, filter 0.15s;
+    box-shadow: 0 4px 16px rgba(253,191,87,0.3);
+  }
+  .splash-btn:hover { transform: scale(1.04); filter: brightness(1.06); }
+  .splash-tagline { color: rgba(255,255,255,0.4); font-size: 10.5px; letter-spacing: 0.3px; }
+
+  /* ── Header ── */
   .ethos-header {
     background: linear-gradient(145deg, var(--maroon) 0%, var(--maroon-dark) 100%);
     padding: 14px 18px 12px;
@@ -83,9 +123,15 @@
     width: 36px; height: 36px;
     background: rgba(253,191,87,0.12);
     border: 1.5px solid rgba(253,191,87,0.3);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; position: relative; overflow: hidden;
   }
-  .header-avatar svg { width: 18px; height: 18px; fill: var(--gold-bright); }
+  .avatar-face {
+    font-size: 20px; line-height: 1;
+    transition: opacity 0.25s;
+    position: absolute;
+  }
+  .avatar-face.hidden { opacity: 0; }
   .header-name {
     font-family: 'Georgia', serif; color: var(--gold-bright);
     font-size: 15px; font-weight: 600; letter-spacing: 0.3px;
@@ -109,6 +155,7 @@
   }
   .header-close:hover { background: rgba(255,255,255,0.2); }
 
+  /* ── Progress ── */
   .progress-bar-wrap { background: rgba(0,0,0,0.15); height: 3px; flex-shrink: 0; }
   .progress-bar-fill {
     height: 100%; background: linear-gradient(90deg, var(--gold-bright), var(--gold));
@@ -121,21 +168,20 @@
   }
   .progress-label span { color: var(--maroon); font-weight: 600; }
 
+  /* ── Summary panel ── */
   #summary-panel {
     background: #fff; border-bottom: 1px solid var(--line);
     padding: 8px 14px; flex-shrink: 0; display: none;
   }
   #summary-panel.visible { display: block; }
-  .summary-title {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
-    color: var(--ink-soft); font-weight: 600; margin-bottom: 6px;
-  }
+  .summary-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--ink-soft); font-weight: 600; margin-bottom: 6px; }
   .summary-grid { display: flex; flex-wrap: wrap; gap: 4px 10px; }
   .summary-item { font-size: 11px; color: var(--ink-soft); display: flex; align-items: center; gap: 4px; }
   .summary-item.filled { color: var(--ink); }
-  .summary-item .scheck { color: #52B788; font-size: 10px; }
-  .summary-item .spend { color: #B5AA98; font-size: 10px; }
+  .scheck { color: #52B788; font-size: 10px; }
+  .spend { color: #B5AA98; font-size: 10px; }
 
+  /* ── Messages ── */
   .ethos-messages {
     flex: 1; overflow-y: auto; padding: 14px 14px 8px;
     display: flex; flex-direction: column; gap: 10px;
@@ -164,7 +210,12 @@
     color: #fff; align-self: flex-end; border-bottom-right-radius: 4px;
     box-shadow: 0 2px 8px rgba(122,0,60,0.2);
   }
+  .msg-receipt {
+    font-size: 10px; color: rgba(255,255,255,0.55);
+    text-align: right; margin-top: 3px; letter-spacing: 0.2px;
+  }
 
+  /* ── Typing ── */
   .ethos-typing {
     align-self: flex-start; background: #fff; border: 1px solid var(--line);
     padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px;
@@ -182,13 +233,12 @@
     30% { transform: translateY(-5px); opacity: 1; }
   }
 
+  /* ── Match searching ── */
   .match-searching {
     align-self: flex-start; background: #fff; border: 1px solid var(--line);
     padding: 12px 16px; border-radius: 16px; border-bottom-left-radius: 4px;
-    display: flex; align-items: center; gap: 10px;
-    font-size: 13px; color: var(--ink-soft);
-    box-shadow: 0 1px 3px rgba(43,36,32,0.06);
-    animation: msg-in 0.26s ease both;
+    display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft);
+    box-shadow: 0 1px 3px rgba(43,36,32,0.06); animation: msg-in 0.26s ease both;
   }
   .search-spinner {
     width: 16px; height: 16px; border-radius: 50%;
@@ -197,6 +247,7 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ── Match card ── */
   .match-card {
     margin-top: 6px; padding: 12px 14px;
     background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-dark) 100%);
@@ -220,20 +271,18 @@
   }
   .scope-btn:hover { filter: brightness(1.08); transform: scale(1.04); }
 
+  /* ── Celebration ── */
   .celebration {
     text-align: center; font-size: 28px; padding: 4px 0;
-    animation: celebrate 0.6s cubic-bezier(0.34,1.56,.64,1) both;
-    align-self: center;
+    animation: celebrate 0.6s cubic-bezier(0.34,1.56,.64,1) both; align-self: center;
   }
   @keyframes celebrate {
     from { opacity: 0; transform: scale(0.4) rotate(-10deg); }
     to { opacity: 1; transform: scale(1) rotate(0deg); }
   }
 
-  .chip-row {
-    display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0;
-    animation: msg-in 0.3s ease both;
-  }
+  /* ── Chips ── */
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 0; animation: msg-in 0.3s ease both; }
   .chip {
     background: var(--chip-bg); border: 1.5px solid var(--chip-border);
     color: var(--maroon); border-radius: 20px; padding: 6px 13px;
@@ -242,6 +291,7 @@
   }
   .chip:hover { background: var(--paper-dim); border-color: var(--maroon); transform: translateY(-1px); }
 
+  /* ── Followups ── */
   .followup-btn {
     display: block; width: 100%; background: #fff;
     border: 1.5px solid var(--chip-border); border-radius: 10px;
@@ -251,13 +301,18 @@
   }
   .followup-btn:hover { background: var(--paper-dim); border-color: var(--maroon); }
 
+  /* ── Calendly ── */
   .calendly-btn {
     display: inline-flex; align-items: center; gap: 7px;
     background: var(--maroon); color: #fff; text-decoration: none;
     padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
-    margin-top: 10px; transition: background 0px 12px 14px; border-top: 1px solid var(--line);
-                   background: var(--paper); flex-shrink: 0;
+    margin-top: 10px; transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(122,0,60,0.2);
   }
+  .calendly-btn:hover { background: var(--maroon-dark); transform: translateY(-1px); }
+
+  /* ── Input ── */
+  .ethos-input-area { padding: 10px 12px 14px; border-top: 1px solid var(--line); background: var(--paper); flex-shrink: 0; }
   .ethos-input-row { display: flex; gap: 8px; align-items: center; }
   .ethos-input-area input {
     flex: 1; background: #fff; border: 1.5px solid var(--line); border-radius: 22px;
@@ -279,15 +334,66 @@
 </head>
 <body>
 
+<!-- Audio context for subtle sounds -->
+<script>
+  let audioCtx = null;
+  function getAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+  function playChime(freq = 880, duration = 0.18, vol = 0.06) {
+    try {
+      const ctx = getAudio();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(vol, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.start(); osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  function playSuccess() {
+    try {
+      const ctx = getAudio();
+      [523, 659, 784].forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = f; osc.type = 'sine';
+        const t = ctx.currentTime + i * 0.12;
+        gain.gain.setValueAtTime(0.07, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.start(t); osc.stop(t + 0.2);
+      });
+    } catch(e) {}
+  }
+</script>
+
 <div id="ethos-bubble" onclick="toggleEthos()">
   <svg viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
 </div>
 
 <div id="ethos-window">
+  <!-- Splash screen -->
+  <div id="ethos-splash">
+    <div class="splash-logo">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    </div>
+    <div class="splash-title">ETHOS</div>
+    <div class="splash-divider"></div>
+    <div class="splash-sub">Your MMRI intake assistant — connecting industry partners with the right research team</div>
+    <button class="splash-btn" onclick="startChat()">Start your consultation →</button>
+    <div class="splash-tagline">McMaster Manufacturing Research Institute</div>
+  </div>
+
   <div class="ethos-header">
     <div class="header-left">
       <div class="header-avatar">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+        <span class="avatar-face" id="avatar-idle">🤖</span>
+        <span class="avatar-face hidden" id="avatar-thinking">🤔</span>
+        <span class="avatar-face hidden" id="avatar-happy">😊</span>
       </div>
       <div>
         <div class="header-name"><span class="online-dot"></span>ETHOS</div>
@@ -300,9 +406,7 @@
   <div class="progress-bar-wrap">
     <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
   </div>
-  <div class="progress-label" id="progress-label">
-    <span>Getting started…</span>
-  </div>
+  <div class="progress-label" id="progress-label"><span>Getting started…</span></div>
 
   <div id="summary-panel">
     <div class="summary-title">Your intake so far</div>
@@ -324,12 +428,14 @@
 <script>
   const API_URL = "https://mpal-chatbot.onrender.com";
   const CALENDLY_LINK = "https://calendly.com/yousafzl-mcmaster/mmri-intro-call-15-min";
+  const STORAGE_KEY = "ethos_conversation";
 
   let conversation = [];
   let isOpen = false;
   let projectCreated = false;
   let step = 0;
   let summaryData = {};
+  let chatStarted = false;
 
   const STEPS = [
     { pct: 0,   label: 'Getting started…' },
@@ -344,12 +450,9 @@
   ];
 
   const SUMMARY_FIELDS = [
-    { key: 'name', label: 'Name' },
-    { key: 'company', label: 'Company' },
-    { key: 'email', label: 'Email' },
-    { key: 'description', label: 'Challenge' },
-    { key: 'budget', label: 'Budget' },
-    { key: 'timeline', label: 'Timeline' },
+    { key: 'name', label: 'Name' }, { key: 'company', label: 'Company' },
+    { key: 'email', label: 'Email' }, { key: 'description', label: 'Challenge' },
+    { key: 'budget', label: 'Budget' }, { key: 'timeline', label: 'Timeline' },
     { key: 'type', label: 'Project type' },
   ];
 
@@ -360,34 +463,135 @@
     referral: ["LinkedIn", "Google", "Word of mouth", "McMaster connection", "Conference"],
   };
 
+  // ── Avatar ──
+  function setAvatar(state) {
+    ['idle','thinking','happy'].forEach(s => {
+      document.getElementById(`avatar-${s}`).classList.toggle('hidden', s !== state);
+    });
+  }
+
+  // ── Persistence ──
+  function saveConversation() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversation, summaryData, step, chatStarted }));
+    } catch(e) {}
+  }
+
+  function loadConversation() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      if (!data.conversation || data.conversation.length === 0) return false;
+      conversation = data.conversation;
+      summaryData = data.summaryData || {};
+      step = data.step || 0;
+      chatStarted = data.chatStarted || false;
+      return true;
+    } catch(e) { return false; }
+  }
+
+  function restoreMessages() {
+    // Re-render messages from conversation history
+    const messages = document.getElementById('ethos-messages');
+    messages.innerHTML = '';
+    conversation.forEach(m => {
+      if (m.role === 'user') {
+        addUserMessage(m.content, true);
+      } else {
+        restoreBotMessage(m.content);
+      }
+    });
+    renderSummary();
+    document.getElementById('progress-fill').style.width = STEPS[step].pct + '%';
+    document.getElementById('progress-label').innerHTML = `<span>${STEPS[step].label}</span>`;
+  }
+
+  function restoreBotMessage(text) {
+    const messages = document.getElementById('ethos-messages');
+    const div = document.createElement('div');
+    div.className = 'ethos-msg bot';
+    const matchLines = [...text.matchAll(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g)];
+    const followupLines = [...text.matchAll(/FOLLOWUP:\s*(.+)/g)];
+    let displayText = text
+      .replace(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g, '')
+      .replace(/FOLLOWUP:\s*(.+)/g, '')
+      .replace(/https:\/\/calendly\.com\/[^\s)]+/g, '')
+      .replace(/\*\*/g, '').trim();
+
+    let badges = '';
+    if (matchLines.length > 0) {
+      badges = '<div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">';
+      matchLines.forEach((m, i) => {
+        badges += `<div class="match-card${i > 0 ? ' secondary' : ''}">
+          <div>
+            <div class="match-label">${i === 0 ? 'Best match' : 'Also relevant'}</div>
+            <div class="match-name">${m[1].trim()}</div>
+            <div class="match-conf">${m[2]}% confidence</div>
+          </div>
+          ${i === 0 ? `<button class="scope-btn" onclick="downloadScoping('${m[1].trim().replace(/'/g,"\\'")}','${m[2]}')">📄 Scoping doc</button>` : ''}
+        </div>`;
+      });
+      badges += `</div><div style="margin-top:10px;"><a class="calendly-btn" href="${CALENDLY_LINK}" target="_blank">📅 Book your meeting</a></div>`;
+    }
+
+    div.innerHTML = displayText.replace(/\n/g, '<br>') + badges;
+    messages.appendChild(div);
+  }
+
+  // ── Toggle ──
   function toggleEthos() {
     isOpen = !isOpen;
     const win = document.getElementById('ethos-window');
     if (isOpen) {
       win.classList.add('open');
-      if (conversation.length === 0) {
-        setTimeout(() => {
-          addBotMessage("Hi there! I'm ETHOS, MMRI's intake assistant. This'll work like a quick 15-minute consult — I'll ask you a few things and connect you with the right team.\n\nTo get us started, what's your name and company?");
-          setTimeout(() => addChips(QUICK_REPLIES.greeting), 400);
-          advanceStep(1);
-        }, 200);
+      // Check for saved conversation
+      if (!chatStarted) {
+        const hasSaved = loadConversation();
+        if (hasSaved) {
+          hideSplash();
+          restoreMessages();
+          chatStarted = true;
+        }
+        // else show splash
       }
     } else {
       win.classList.remove('open');
     }
   }
 
+  function hideSplash() {
+    const splash = document.getElementById('ethos-splash');
+    if (!splash) return;
+    splash.classList.add('hiding');
+    setTimeout(() => splash.remove(), 400);
+  }
+
+  function startChat() {
+    hideSplash();
+    chatStarted = true;
+    setTimeout(() => {
+      addBotMessage("Hi there! I'm ETHOS, MMRI's intake assistant. This'll work like a quick 15-minute consult — I'll ask you a few things and connect you with the right team.\n\nTo get us started, what's your name and company?");
+      setTimeout(() => addChips(QUICK_REPLIES.greeting), 400);
+      advanceStep(1);
+    }, 200);
+  }
+
+  // ── Progress ──
   function advanceStep(n) {
     if (n <= step) return;
     step = Math.min(n, STEPS.length - 1);
     document.getElementById('progress-fill').style.width = STEPS[step].pct + '%';
     document.getElementById('progress-label').innerHTML = `<span>${STEPS[step].label}</span>`;
+    saveConversation();
   }
 
+  // ── Summary ──
   function updateSummary(key, value) {
     if (!value || value.trim() === '') return;
     summaryData[key] = value;
     renderSummary();
+    saveConversation();
   }
 
   function renderSummary() {
@@ -410,20 +614,14 @@
     const botLower = botText ? botText.toLowerCase() : '';
     if ((botLower.includes('name') || botLower.includes('company')) && userText.length > 2) {
       const parts = userText.split(/,|\sfrom\s|\sat\s/i);
-      if (parts.length >= 2) {
-        updateSummary('name', parts[0].trim());
-        updateSummary('company', parts[1].trim());
-      } else if (!summaryData.name) {
-        updateSummary('name', userText);
-      }
+      if (parts.length >= 2) { updateSummary('name', parts[0].trim()); updateSummary('company', parts[1].trim()); }
+      else if (!summaryData.name) updateSummary('name', userText);
     }
     if (userText.includes('@')) updateSummary('email', userText.trim());
     if (lower.includes('$') || lower.includes('000') || lower.includes(' k')) updateSummary('budget', userText);
     if (lower.includes('week') || lower.includes('month') || lower.includes('year') || lower.includes('asap')) updateSummary('timeline', userText);
     if (lower.includes('fee') || lower.includes('service') || lower.includes('funded') || lower.includes('nserc') || lower.includes('orf')) updateSummary('type', userText);
-    if (!summaryData.description && userText.length > 30 && (botLower.includes('challeng') || botLower.includes('problem') || botLower.includes('tell me'))) {
-      updateSummary('description', userText);
-    }
+    if (!summaryData.description && userText.length > 30 && (botLower.includes('challeng') || botLower.includes('problem') || botLower.includes('tell me'))) updateSummary('description', userText);
   }
 
   function detectContextChips(text) {
@@ -445,6 +643,7 @@
     else if (lower.includes('book') || lower.includes('calendly') || lower.includes('wonderful')) advanceStep(8);
   }
 
+  // ── Messages ──
   function addBotMessage(text) {
     const messages = document.getElementById('ethos-messages');
     const div = document.createElement('div');
@@ -460,6 +659,9 @@
 
     const isCelebration = displayText.toLowerCase().includes('wonderful') || displayText.toLowerCase().includes("let's get");
 
+    playChime(660, 0.15, 0.05);
+    setAvatar('idle');
+
     if (matchLines.length > 0) {
       if (!projectCreated) {
         projectCreated = true;
@@ -467,7 +669,7 @@
         fetch(`${API_URL}/api/create-project`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ matched_team: matchLines[0][1].trim(), conversation_summary: convText })
-        }).catch(e => console.error('Project creation failed:', e));
+        }).catch(e => console.error(e));
       }
 
       const searchDiv = document.createElement('div');
@@ -478,27 +680,27 @@
 
       setTimeout(() => {
         searchDiv.remove();
+        playSuccess();
+        setAvatar('happy');
+        setTimeout(() => setAvatar('idle'), 3000);
 
         if (isCelebration) {
-          const cel = document.createElement('div');
-          cel.className = 'celebration';
-          cel.textContent = '🎉';
-          messages.appendChild(cel);
-          setTimeout(() => {
-            const cel2 = document.createElement('div');
-            cel2.className = 'celebration';
-            cel2.style.animationDelay = '0.15s';
-            cel2.textContent = '✨';
-            messages.appendChild(cel2);
-          }, 150);
+          ['🎉','✨','🌟'].forEach((e, i) => {
+            setTimeout(() => {
+              const cel = document.createElement('div');
+              cel.className = 'celebration';
+              cel.textContent = e;
+              messages.appendChild(cel);
+              messages.scrollTop = messages.scrollHeight;
+            }, i * 120);
+          });
         }
 
         let badges = '<div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">';
         matchLines.forEach((m, i) => {
-          const label = i === 0 ? 'Best match' : 'Also relevant';
           badges += `<div class="match-card${i > 0 ? ' secondary' : ''}" style="animation-delay:${i*0.12}s">
             <div>
-              <div class="match-label">${label}</div>
+              <div class="match-label">${i === 0 ? 'Best match' : 'Also relevant'}</div>
               <div class="match-name">${m[1].trim()}</div>
               <div class="match-conf">${m[2]}% confidence</div>
             </div>
@@ -512,14 +714,12 @@
           followups += `<button class="followup-btn" onclick="answerFollowup('${f[1].replace(/'/g,"\\'")}')">💬 ${f[1]}</button>`;
         });
 
-        const calendlyButton = `<div style="margin-top:10px;">
-          <a class="calendly-btn" href="${CALENDLY_LINK}" target="_blank">📅 Book your meeting</a>
-        </div>`;
-
-        div.innerHTML = displayText.replace(/\n/g, '<br>') + badges + followups + calendlyButton;
+        div.innerHTML = displayText.replace(/\n/g, '<br>') + badges + followups +
+          `<div style="margin-top:10px;"><a class="calendly-btn" href="${CALENDLY_LINK}" target="_blank">📅 Book your meeting</a></div>`;
         messages.appendChild(div);
         messages.scrollTop = messages.scrollHeight;
         detectStep(displayText);
+        saveConversation();
       }, 1200);
 
       return div;
@@ -535,16 +735,19 @@
     messages.scrollTop = messages.scrollHeight;
     detectStep(displayText);
     detectContextChips(displayText);
+    saveConversation();
     return div;
   }
 
-  function addUserMessage(text) {
+  function addUserMessage(text, silent = false) {
     const messages = document.getElementById('ethos-messages');
     const div = document.createElement('div');
     div.className = 'ethos-msg user';
-    div.innerHTML = text.replace(/\n/g, '<br>');
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    div.innerHTML = text.replace(/\n/g, '<br>') + `<div class="msg-receipt">✓✓ ${now}</div>`;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+    if (!silent) saveConversation();
     return div;
   }
 
@@ -554,8 +757,7 @@
     row.className = 'chip-row';
     options.forEach(opt => {
       const chip = document.createElement('button');
-      chip.className = 'chip';
-      chip.textContent = opt;
+      chip.className = 'chip'; chip.textContent = opt;
       chip.onclick = () => { row.remove(); handleChip(opt); };
       row.appendChild(chip);
     });
@@ -576,6 +778,7 @@
     div.innerHTML = '<span></span><span></span><span></span>';
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+    setAvatar('thinking');
     return div;
   }
 
@@ -593,8 +796,10 @@
       detectSummaryData(lastUser, reply);
       addBotMessage(reply);
       conversation.push({ role: 'assistant', content: reply });
+      saveConversation();
     } catch (err) {
       typing.remove();
+      setAvatar('idle');
       addBotMessage('Sorry, I had trouble connecting. Please try again or email mmri-ad@mcmaster.ca');
     }
   }
@@ -628,9 +833,7 @@
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `MMRI_Scoping_${team.replace(/\s+/g,'_')}.pdf`;
-      a.click();
+      a.href = url; a.download = `MMRI_Scoping_${team.replace(/\s+/g,'_')}.pdf`; a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
       addBotMessage('Sorry, could not generate the scoping document. Please try again.');
