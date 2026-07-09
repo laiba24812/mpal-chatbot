@@ -401,6 +401,7 @@
     position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
     background: linear-gradient(105deg, transparent, rgba(253,191,87,0.06), rgba(0,212,255,0.04), transparent);
     animation: holo-shimmer 4s ease-in-out infinite;
+    pointer-events: none;
   }
   @keyframes holo-shimmer {
     0% { left: -100%; }
@@ -414,7 +415,7 @@
     border: 2px solid var(--electric); padding: 4px 10px; border-radius: 4px;
     opacity: 0; animation: classified-stamp 1.4s ease forwards;
     text-shadow: 0 0 10px var(--electric); box-shadow: 0 0 10px rgba(0,212,255,0.3);
-    white-space: nowrap;
+    white-space: nowrap; pointer-events: none;
   }
   @keyframes classified-stamp {
     0% { opacity: 0; transform: translate(-50%,-50%) scale(2) rotate(-15deg); }
