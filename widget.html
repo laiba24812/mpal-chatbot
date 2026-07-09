@@ -135,6 +135,7 @@
     background: var(--space);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
     animation: splash-in 0.4s ease;
+    pointer-events: all;
   }
   #ethos-splash.hiding { animation: splash-out 0.4s forwards; }
   @keyframes splash-in { from { opacity: 0; } to { opacity: 1; } }
@@ -188,6 +189,7 @@
     padding: 12px 30px; font-size: 12.5px; font-weight: 600; cursor: pointer;
     letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Courier New', monospace;
     margin-top: 4px; transition: all 0.2s;
+    position: relative; z-index: 11;
   }
   .splash-btn:hover {
     background: rgba(0,212,255,0.08); border-color: var(--electric);
