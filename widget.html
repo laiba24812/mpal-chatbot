@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ETHOS · MMRI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --space: #040810;
@@ -12,8 +13,8 @@
     --maroon-glow: rgba(122,0,60,0.5);
     --gold: #FDBF57;
     --gold-dim: #D4A24C;
-    --electric: #00D4FF;
-    --electric-dim: rgba(0,212,255,0.12);
+    --electric: #007096;
+    --electric-dim: rgba(0,112,150,0.12);
     --green-ok: #00FF88;
     --glass: rgba(255,255,255,0.03);
     --glass-border: rgba(255,255,255,0.07);
@@ -180,14 +181,14 @@
     background-clip: text;
     text-shadow: none; filter: drop-shadow(0 0 20px rgba(253,191,87,0.3));
   }
-  .splash-tagline { color: var(--electric); font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; font-family: 'Courier New', monospace; }
+  .splash-tagline { color: var(--electric); font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; font-family: 'Poppins', Arial,  sans-serif; }
   .splash-sub { color: rgba(255,255,255,0.45); font-size: 12.5px; text-align: center; max-width: 260px; line-height: 1.7; }
   .splash-divider { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--electric), transparent); }
   .splash-btn {
     background: transparent; color: var(--electric);
     border: 1px solid rgba(0,212,255,0.4); border-radius: 6px;
     padding: 12px 30px; font-size: 12.5px; font-weight: 600; cursor: pointer;
-    letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Courier New', monospace;
+    letter-spacing: 1.5px; text-transform: uppercase; font-family: 'Poppins', Arial, sans-serif;
     margin-top: 4px; transition: all 0.2s;
     position: relative; z-index: 11;
   }
@@ -196,7 +197,7 @@
     box-shadow: 0 0 20px rgba(0,212,255,0.2), inset 0 0 20px rgba(0,212,255,0.05);
     transform: translateY(-1px);
   }
-  .splash-version { color: rgba(255,255,255,0.15); font-size: 9.5px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+  .splash-version { color: rgba(255,255,255,0.15); font-size: 9.5px; font-family: 'Poppins', Arial, sans-serif; letter-spacing: 1px; }
 
   /* ── Header ── */
   .ethos-header {
@@ -224,7 +225,7 @@
   .avatar-face.hidden { opacity: 0; }
   .header-title-group { display: flex; flex-direction: column; gap: 1px; }
   .header-name {
-    font-family: 'Courier New', monospace; color: var(--gold);
+    font-family: 'Poppins', Arial, sans-serif; color: var(--gold);
     font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
     display: flex; align-items: center; gap: 7px;
     filter: drop-shadow(0 0 8px rgba(253,191,87,0.25));
@@ -237,13 +238,13 @@
     0%,100% { box-shadow: 0 0 4px var(--green-ok); }
     50% { box-shadow: 0 0 12px var(--green-ok), 0 0 24px rgba(0,255,136,0.4); }
   }
-  .header-sub { color: var(--ink-soft); font-size: 9.5px; letter-spacing: 0.8px; font-family: 'Courier New', monospace; }
+  .header-sub { color: var(--ink-soft); font-size: 9.5px; letter-spacing: 0.8px; font-family: 'Poppins', Arial, sans-serif; }
   .header-status {
     display: flex; align-items: center; gap: 6px;
   }
   .status-pill {
     background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2);
-    color: var(--green-ok); font-size: 9px; font-family: 'Courier New', monospace;
+    color: var(--green-ok); font-size: 9px; font-family: 'Poppins', Arial, sans-serif;
     letter-spacing: 0.8px; padding: 2px 7px; border-radius: 4px;
     text-transform: uppercase;
   }
@@ -275,7 +276,7 @@
     background: rgba(0,0,0,0.4); border-bottom: 1px solid var(--line);
     padding: 4px 14px; font-size: 9.5px; color: var(--ink-soft);
     display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-    font-family: 'Courier New', monospace; letter-spacing: 0.5px;
+    font-family: 'Poppins', Arial, sans-serif; letter-spacing: 0.5px;
   }
   .progress-label .pl-left { color: var(--electric); }
   .progress-label .pl-right { color: rgba(255,255,255,0.2); font-size: 8.5px; }
@@ -286,7 +287,7 @@
     padding: 7px 14px; flex-shrink: 0; display: none; position: relative; z-index: 2;
   }
   #summary-panel.visible { display: block; }
-  .summary-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--electric); font-weight: 600; margin-bottom: 5px; font-family: 'Courier New', monospace; }
+  .summary-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--electric); font-weight: 600; margin-bottom: 5px; font-family: 'Poppins', Arial, sans-serif; }
   .summary-grid { display: flex; flex-wrap: wrap; gap: 3px 10px; }
   .summary-item { font-size: 10.5px; color: var(--ink-soft); display: flex; align-items: center; gap: 3px; }
   .summary-item.filled { color: var(--ink); }
@@ -319,7 +320,7 @@
     position: relative;
   }
   .msg-prefix {
-    font-family: 'Courier New', monospace; font-size: 9px;
+    font-family: 'Poppins', Arial, sans-serif; font-size: 9px;
     color: var(--electric); letter-spacing: 0.5px; display: block; margin-bottom: 4px; opacity: 0.7;
   }
   .ethos-msg.user {
@@ -328,7 +329,7 @@
     border: 1px solid rgba(122,0,60,0.4);
     box-shadow: 0 4px 16px rgba(122,0,60,0.25), inset 0 1px 0 rgba(255,255,255,0.04);
   }
-  .msg-receipt { font-size: 9.5px; color: rgba(255,255,255,0.28); text-align: right; margin-top: 4px; font-family: 'Courier New', monospace; }
+  .msg-receipt { font-size: 9.5px; color: rgba(255,255,255,0.28); text-align: right; margin-top: 4px; font-family: 'Poppins', Arial, sans-serif; }
 
   /* ── Typewriter cursor ── */
   .tw-cursor {
@@ -374,7 +375,7 @@
     padding: 10px 16px; border-radius: 10px; border-bottom-left-radius: 3px;
     display: flex; align-items: center; gap: 10px;
     font-size: 11.5px; color: var(--electric);
-    font-family: 'Courier New', monospace; letter-spacing: 0.5px;
+    font-family: 'Poppins', Arial, sans-serif; letter-spacing: 0.5px;
     animation: msg-in 0.26s ease both;
   }
   .search-spinner {
@@ -410,7 +411,7 @@
   /* Classified stamp animation */
   .match-card-classified {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(2) rotate(-15deg);
-    font-size: 22px; font-family: 'Courier New', monospace; font-weight: 900;
+    font-size: 22px; font-family: 'Poppins', Arial, sans-serif; font-weight: 900;
     color: var(--electric); letter-spacing: 3px; text-transform: uppercase;
     border: 2px solid var(--electric); padding: 4px 10px; border-radius: 4px;
     opacity: 0; animation: classified-stamp 1.4s ease forwards;
@@ -429,14 +430,14 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
   }
   .match-card.secondary { opacity: 0.45; animation: msg-in 0.3s ease both; }
-  .match-label { color: var(--electric); font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .match-label { color: var(--electric); font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; font-family: 'Poppins', Arial, sans-serif; }
   .match-name { color: var(--gold); font-size: 13px; font-weight: 700; margin-top: 3px; filter: drop-shadow(0 0 6px rgba(253,191,87,0.3)); }
-  .match-conf { color: rgba(255,255,255,0.35); font-size: 10px; margin-top: 2px; font-family: 'Courier New', monospace; }
+  .match-conf { color: rgba(255,255,255,0.35); font-size: 10px; margin-top: 2px; font-family: 'Poppins', Arial, sans-serif; }
   .scope-btn {
     background: rgba(253,191,87,0.1); color: var(--gold);
     border: 1px solid rgba(253,191,87,0.25); border-radius: 6px;
     padding: 7px 12px; font-size: 10.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
-    transition: all 0.15s; font-family: 'Courier New', monospace; letter-spacing: 0.3px;
+    transition: all 0.15s; font-family: 'Poppins', Arial, sans-serif; letter-spacing: 0.3px;
   }
   .scope-btn:hover { background: rgba(253,191,87,0.18); border-color: var(--gold); box-shadow: 0 0 12px rgba(253,191,87,0.2); transform: scale(1.03); }
 
@@ -457,7 +458,7 @@
     background: var(--chip-bg); border: 1px solid var(--chip-border);
     color: var(--electric); border-radius: 5px; padding: 5px 12px;
     font-size: 11.5px; font-weight: 500; cursor: pointer; white-space: nowrap;
-    transition: all 0.15s; letter-spacing: 0.3px; font-family: 'Courier New', monospace;
+    transition: all 0.15s; letter-spacing: 0.3px; font-family: 'Poppins', Arial, sans-serif;
   }
   .chip:hover { background: rgba(0,212,255,0.1); border-color: var(--electric); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,212,255,0.12), 0 0 8px rgba(0,212,255,0.08); }
 
@@ -467,7 +468,7 @@
     background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);
     border-radius: 6px; color: var(--ink-soft); padding: 8px 13px; font-size: 12.5px;
     cursor: pointer; text-align: left; margin-top: 4px; transition: all 0.15s;
-    font-family: 'Courier New', monospace; letter-spacing: 0.2px;
+    font-family: 'Poppins', Arial, sans-serif; letter-spacing: 0.2px;
   }
   .followup-btn:hover { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2); color: var(--electric); }
 
@@ -477,7 +478,7 @@
     background: rgba(122,0,60,0.4); color: var(--gold); text-decoration: none;
     padding: 9px 16px; border-radius: 7px; font-size: 12px; font-weight: 600;
     margin-top: 10px; transition: all 0.15s;
-    border: 1px solid rgba(253,191,87,0.2); font-family: 'Courier New', monospace;
+    border: 1px solid rgba(253,191,87,0.2); font-family: 'Poppins', Arial, sans-serif;
     letter-spacing: 0.3px;
     box-shadow: 0 4px 16px rgba(122,0,60,0.2);
   }
@@ -492,7 +493,7 @@
   }
   .input-status {
     display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
-    font-size: 9px; color: var(--ink-soft); font-family: 'Courier New', monospace; letter-spacing: 0.5px;
+    font-size: 9px; color: var(--ink-soft); font-family: 'Poppins', Arial, sans-serif; letter-spacing: 0.5px;
   }
   .ready-dot {
     width: 5px; height: 5px; border-radius: 50%; background: var(--green-ok);
@@ -503,7 +504,7 @@
     flex: 1; background: rgba(255,255,255,0.03);
     border: 1px solid rgba(0,212,255,0.1); border-radius: 7px;
     padding: 10px 16px; color: var(--ink); font-size: 13px; outline: none;
-    transition: all 0.2s; font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: all 0.2s; font-family: Arial, sans-serif;
     backdrop-filter: blur(10px);
   }
   .ethos-input-area input:focus {
