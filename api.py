@@ -133,9 +133,11 @@ Keep it brief: "And roughly how many employees does [company] have?"
 
 STEP 5 — TIMELINE & BUDGET
 Ask both together: "Do you have a timeline in mind for this? And roughly what budget range are you working with — under $5k, $5–15k, $15–50k, or over $50k? Both are just for us internally, totally confidential."
+If the partner volunteers a specific dollar figure or a quantified savings/ROI estimate (e.g. "$232,960 over 4 years" or "$1,120/week"), capture it exactly as given — don't round it into a bucket. Ask one brief follow-up to understand the basis: "That's a really helpful number — is that an annual figure, or total over the project/contract length?" Record the answer alongside the estimate.
 
 STEP 6 — PROCEED DECISION
 Internally evaluate fit based on budget, timeline, scope, and company size. If good fit → move naturally into Step 7 without making it feel like a decision was made. If poor fit → say warmly: "I want to make sure we set the right expectations here — could you tell me a bit more about [the concern]?" Give them a chance to clarify before declining gracefully.
+Also internally determine a priority level for MMRI staff, based on budget/ROI size: High (budget over $50k, or a quantified savings/ROI estimate over $50k total), Medium ($15k–$50k range or estimate), Low (under $15k or no figure given). This does not change how you talk to the partner — it's purely for internal staff triage and gets output at the end alongside the MATCH tags.
 
 STEP 7 — PROJECT TYPE
 Ask: "Is this something you'd want to do fee-for-service, or are you thinking of applying for external funding like NSERC or ORF?"
@@ -149,6 +151,7 @@ Say: "Based on what you've shared, MMRI will put together a quote for you." If t
 
 STEP 10 — CONFIRMATION SUMMARY
 Recap everything warmly and concisely: "Just to make sure I've got everything right — [name] from [company], [email], [project type], [one-line description], timeline [X], budget [range]. Does that all look good?"
+If the partner gave a specific dollar figure or ROI estimate in Step 5, include it explicitly instead of just the bucket range: "...timeline [X], and you're estimating around [$ figure] in savings [annual/total, per the basis they gave]. Does that all look good?"
 If they want to correct anything, update and re-confirm.
 
 STEP 11 — APPROVAL & NEXT STEPS
@@ -194,6 +197,12 @@ MATCH: [primary category] | CONFIDENCE: [percentage]%
 MATCH: [secondary category] | CONFIDENCE: [percentage]%
 
 Before the MATCH tags, briefly explain in plain language why this category fits — for example: "Based on what you've described, this sounds like it falls into our equipment health and monitoring space, since you're dealing with machine performance issues."
+
+After the match, output the internal priority level determined in Step 6:
+PRIORITY: [High/Medium/Low]
+
+For example:
+PRIORITY: High
 
 After the match include 1-2 follow-up questions:
 FOLLOWUP: [question]
@@ -725,13 +734,14 @@ def create_project():
     data = request.json
     conversation_summary = data.get('conversation_summary', '')
     matched_team = data.get('matched_team', '')
+    priority = data.get('priority', '')
 
     extract_response = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=512,
         messages=[{
             "role": "user",
-            "content": f"From this conversation extract: partner name, company name, email, phone, project description, project type, company size, address if mentioned. Return ONLY raw JSON: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"description\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"address\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+            "content": f"From this conversation extract: partner name, company name, email, phone, project description, project type, company size, address if mentioned, and budget_estimate (any specific dollar figure or quantified savings/ROI estimate the partner gave, plus whether they said it's annual or total — leave blank if they only gave a bucket range like 'under $5k'). Return ONLY raw JSON: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"description\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"address\": \"...\", \"budget_estimate\": \"...\"}}\n\nConversation:\n{conversation_summary}"
         }]
     )
 
@@ -745,11 +755,18 @@ def create_project():
 
     project_code = f"PENDING-{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
+    description_extras = f"\n\nETHOS Category Match: {matched_team}"
+    if priority:
+        description_extras += f"\nETHOS Priority: {priority}"
+    budget_estimate = extracted.get('budget_estimate', '')
+    if budget_estimate:
+        description_extras += f"\nBudget/ROI Estimate: {budget_estimate}"
+
     fields = {
     "Title": f"{extracted.get('company', 'Unknown')} - Intake",
     "Project Code": project_code,
     "Partner": extracted.get('company', 'Unknown'),
-    "Project Description": extracted.get('description', '') + f"\n\nETHOS Category Match: {matched_team}",
+    "Project Description": extracted.get('description', '') + description_extras,
     "Start Date": datetime.now().strftime('%Y-%m-%d'),
     "Program Type": extracted.get('project_type', ''),
     "Sub-Group": "",

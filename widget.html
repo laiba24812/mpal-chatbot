@@ -869,7 +869,7 @@
     const div = document.createElement('div');
     div.className = 'ethos-msg bot';
     const matchLines = [...text.matchAll(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g)];
-    let displayText = text.replace(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g,'').replace(/FOLLOWUP:\s*(.+)/g,'').replace(/https:\/\/calendly\.com\/[^\s)]+/g,'').replace(/\*\*/g,'').trim();
+    let displayText = text.replace(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g,'').replace(/PRIORITY:\s*(High|Medium|Low)/g,'').replace(/FOLLOWUP:\s*(.+)/g,'').replace(/https:\/\/calendly\.com\/[^\s)]+/g,'').replace(/\*\*/g,'').trim();
     let extra = '';
     if (matchLines.length > 0) {
       extra = '<div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">';
@@ -896,7 +896,9 @@
     const messages = document.getElementById('ethos-messages');
     const matchLines = [...text.matchAll(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g)];
     const followupLines = [...text.matchAll(/FOLLOWUP:\s*(.+)/g)];
-    let displayText = text.replace(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g,'').replace(/FOLLOWUP:\s*(.+)/g,'').replace(/https:\/\/calendly\.com\/[^\s)]+/g,'').replace(/\*\*/g,'').trim();
+    const priorityMatch = text.match(/PRIORITY:\s*(High|Medium|Low)/);
+    const priority = priorityMatch ? priorityMatch[1] : '';
+    let displayText = text.replace(/MATCH:\s*([^|]+?)\s*\|\s*CONFIDENCE:\s*(\d+)%/g,'').replace(/PRIORITY:\s*(High|Medium|Low)/g,'').replace(/FOLLOWUP:\s*(.+)/g,'').replace(/https:\/\/calendly\.com\/[^\s)]+/g,'').replace(/\*\*/g,'').trim();
     const isCelebration = displayText.toLowerCase().includes('wonderful') || displayText.toLowerCase().includes("let's get");
     setAvatar('idle'); playChime();
 
@@ -904,7 +906,7 @@
       if (!projectCreated) {
         projectCreated = true;
         const convText = conversation.map(m=>`${m.role.toUpperCase()}: ${m.content}`).join('\n');
-        fetch(`${API_URL}/api/create-project`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_team:matchLines[0][1].trim(),conversation_summary:convText})}).catch(e=>console.error(e));
+        fetch(`${API_URL}/api/create-project`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({matched_team:matchLines[0][1].trim(),priority:priority,conversation_summary:convText})}).catch(e=>console.error(e));
       }
 
       const searchDiv = document.createElement('div');
