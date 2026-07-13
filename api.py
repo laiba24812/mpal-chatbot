@@ -353,7 +353,7 @@ def generate_scoping():
         max_tokens=512,
         messages=[{
             "role": "user",
-            "content": f"From this conversation extract: partner name, company name, email, phone, company overview, problem description, project type, company size, and timeline. Return ONLY a JSON object with no markdown, no backticks, just raw JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"overview\": \"...\", \"problem\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"timeline\": \"...\"}}\n\nConversation:\n{conversation_summary}"
+            "content": f"From this conversation extract: partner name, company name, email, phone, company overview, problem description, project type, company size, timeline, and budget_estimate (any specific dollar figure or quantified savings/ROI estimate the partner gave, plus whether annual or total — leave blank if only a bucket range was given). Return ONLY a JSON object with no markdown, no backticks, just raw JSON like this: {{\"name\": \"...\", \"company\": \"...\", \"email\": \"...\", \"phone\": \"...\", \"overview\": \"...\", \"problem\": \"...\", \"project_type\": \"...\", \"company_size\": \"...\", \"timeline\": \"...\", \"budget_estimate\": \"...\"}}\n\nConversation:\n{conversation_summary}"
         }]
     )
 
@@ -369,6 +369,7 @@ def generate_scoping():
         project_type = extracted.get('project_type', 'Not specified')
         company_size = extracted.get('company_size', 'Not specified')
         timeline = extracted.get('timeline', 'Not specified')
+        budget_estimate = extracted.get('budget_estimate', '')
     except:
         partner_name = 'Unknown'
         company = 'Unknown'
@@ -379,6 +380,7 @@ def generate_scoping():
         project_type = 'Not specified'
         company_size = 'Not specified'
         timeline = 'Not specified'
+        budget_estimate = ''
 
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -406,130 +408,138 @@ def generate_scoping():
     styles = getSampleStyleSheet()
 
     if not is_funded:
-        # ───────────────────────── SIMPLE FFS VERSION ─────────────────────────
+        # ───────────────────────── LETTERHEAD-STYLE FFS VERSION ─────────────────────────
         doc = SimpleDocTemplate(
             buffer, pagesize=letter,
-            rightMargin=0.85*inch, leftMargin=0.85*inch,
-            topMargin=0.7*inch, bottomMargin=0.75*inch
+            rightMargin=0.75*inch, leftMargin=0.75*inch,
+            topMargin=0.6*inch, bottomMargin=0.7*inch
         )
 
-        eyebrow_style = ParagraphStyle('Eyebrow', parent=styles['Normal'], fontName='Helvetica-Bold',
-            fontSize=9, textColor=gold, spaceAfter=2)
-        title_style = ParagraphStyle('Title', parent=styles['Title'], fontName='Helvetica-Bold',
-            textColor=maroon_dark, fontSize=22, spaceAfter=4, leading=26)
-        subtitle_style = ParagraphStyle('Subtitle', parent=styles['Normal'], fontName='Helvetica',
-            textColor=ink_soft, fontSize=10, spaceAfter=2)
-        section_label_style = ParagraphStyle('SectionLabel', parent=styles['Normal'], fontName='Helvetica-Bold',
-            fontSize=10, textColor=maroon, spaceBefore=16, spaceAfter=6)
-        field_label_style = ParagraphStyle('FieldLabel', parent=styles['Normal'], fontName='Helvetica-Bold',
-            fontSize=8.5, textColor=ink_soft, spaceAfter=1)
-        field_value_style = ParagraphStyle('FieldValue', parent=styles['Normal'], fontName='Helvetica',
-            fontSize=10.5, textColor=ink, spaceAfter=9, leading=14)
-        body_style = ParagraphStyle('Body', parent=styles['Normal'], fontName='Helvetica',
-            fontSize=10.5, textColor=ink, spaceAfter=8, leading=15)
-        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontName='Helvetica',
-            fontSize=8, textColor=ink_soft)
-        numbered_style = ParagraphStyle('Numbered', parent=styles['Normal'], fontName='Helvetica',
-            fontSize=10, textColor=ink, spaceAfter=5, leading=14, leftIndent=4)
+        ink_soft2 = HexColor('#4A4540')
+        border_col = HexColor('#231F20')
 
-        def field_block(label, value):
-            return [Paragraph(label.upper(), field_label_style), Paragraph(str(value), field_value_style)]
+        uni_style = ParagraphStyle('Uni', parent=styles['Normal'], fontName='Times-Bold', fontSize=15, textColor=ink, leading=17)
+        eng_style = ParagraphStyle('Eng', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=ink, leading=13, spaceBefore=1)
+        mmri_style = ParagraphStyle('Mmri', parent=styles['Normal'], fontName='Helvetica', fontSize=9.5, textColor=ink_soft2, leading=11)
+        contact_style = ParagraphStyle('Contact', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8.5,
+            textColor=ink_soft2, alignment=TA_RIGHT, leading=11)
+        table_header_style = ParagraphStyle('TH', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=ink)
+        table_value_style = ParagraphStyle('TV', parent=styles['Normal'], fontName='Helvetica', fontSize=10, textColor=ink, leading=13)
+        q_style = ParagraphStyle('Q', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=ink, spaceAfter=4, leading=13)
+        a_style = ParagraphStyle('A', parent=styles['Normal'], fontName='Helvetica', fontSize=10, textColor=ink, leading=14)
+        footer_brand_style = ParagraphStyle('FooterBrand', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=13, textColor=maroon)
+
+        def qa_box(question, answer):
+            answer_flowables = [Paragraph(answer, a_style)] if isinstance(answer, str) else answer
+            cell_content = [Paragraph(question, q_style)] + answer_flowables
+            t = Table([[cell_content]], colWidths=[6.75*inch])
+            t.setStyle(TableStyle([
+                ('BOX', (0,0), (-1,-1), 0.75, border_col),
+                ('LEFTPADDING', (0,0), (-1,-1), 10),
+                ('RIGHTPADDING', (0,0), (-1,-1), 10),
+                ('TOPPADDING', (0,0), (-1,-1), 8),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ]))
+            return t
 
         story = []
-        story.append(Paragraph("MCMASTER MANUFACTURING RESEARCH INSTITUTE", eyebrow_style))
-        story.append(Paragraph("Quick-Start Project Summary", title_style))
-        story.append(Paragraph(f"Fee-for-Service Engagement &nbsp;&middot;&nbsp; {today_str} &nbsp;&middot;&nbsp; Generated by ETHOS", subtitle_style))
-        story.append(Spacer(1, 8))
-        story.append(HRFlowable(width="100%", thickness=2, color=maroon))
-        story.append(Spacer(1, 14))
 
-        left_col = field_block("Contact", f"{partner_name} &middot; {company}")
-        right_col = field_block("Email / Phone", f"{email} &middot; {phone}")
-        info_table = Table([[left_col, right_col]], colWidths=[3.1*inch, 3.1*inch])
-        info_table.setStyle(TableStyle([
+        left_header = [
+            Paragraph("McMaster<br/>University", uni_style),
+            Spacer(1, 2),
+            Paragraph("ENGINEERING", eng_style),
+            Paragraph("McMaster Manufacturing<br/>Research Institute (MMRI)", mmri_style),
+        ]
+        right_header = [
+            Paragraph("<i>McMaster Manufacturing Research Institute</i>", contact_style),
+            Paragraph("230 Longwood Rd. S.", contact_style),
+            Paragraph("Hamilton, ON L8P 0A6", contact_style),
+            Spacer(1, 4),
+            Paragraph("(365) 366-6638", contact_style),
+            Paragraph("mmri-ad@mcmaster.ca", contact_style),
+            Paragraph("eng.mcmaster.ca/manufacturing-research-institute-mmri", contact_style),
+        ]
+        header_table = Table([[left_header, right_header]], colWidths=[3.2*inch, 3.55*inch])
+        header_table.setStyle(TableStyle([
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
             ('LEFTPADDING', (0,0), (-1,-1), 0),
             ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ]))
+        story.append(header_table)
+        story.append(Spacer(1, 14))
+
+        info_header = [Paragraph("Name", table_header_style), Paragraph("Company", table_header_style), Paragraph("Date", table_header_style)]
+        info_values = [Paragraph(partner_name, table_value_style), Paragraph(company, table_value_style), Paragraph(today_str, table_value_style)]
+        info_table = Table([info_header, info_values], colWidths=[2.25*inch, 2.75*inch, 1.75*inch])
+        info_table.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.75, border_col),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (0,0), (-1,-1), 8),
+            ('RIGHTPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
         ]))
         story.append(info_table)
 
-        left_col2 = field_block("Company Size", company_size)
-        right_col2 = field_block("Target Timeline", timeline)
-        info_table2 = Table([[left_col2, right_col2]], colWidths=[3.1*inch, 3.1*inch])
-        info_table2.setStyle(TableStyle([
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('LEFTPADDING', (0,0), (-1,-1), 0),
-            ('RIGHTPADDING', (0,0), (-1,-1), 0),
-        ]))
-        story.append(info_table2)
+        story.append(qa_box("Describe the problem or challenge the partner wants to address.", problem))
+        story.append(qa_box("Project type and estimated timeline.", f"{project_type} &nbsp;&middot;&nbsp; {timeline if timeline else 'Not specified'}"))
+        story.append(qa_box("Company size.", company_size))
+        budget_line = budget_estimate if budget_estimate else "Not specified by partner (bucket range only, see internal notes)."
+        story.append(qa_box("Estimated budget / ROI, as shared by the partner.", budget_line))
 
-        story.append(Paragraph("WHAT THEY NEED", section_label_style))
-        story.append(Paragraph(problem, body_style))
-
-        story.append(Spacer(1, 4))
-        team_card_inner = Table(
-            [[Paragraph("RECOMMENDED MMRI TEAM", ParagraphStyle('w', parent=field_label_style, textColor=HexColor('#FFFFFF'), fontSize=8.5)),
-              Paragraph(f"{confidence}% match confidence", ParagraphStyle('c', parent=field_label_style, textColor=gold_bright, fontSize=8.5))],
-             [Paragraph(matched_team, ParagraphStyle('tn', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=14, textColor=gold_bright)), '']],
-            colWidths=[4.2*inch, 2*inch]
+        recommended_row = Table(
+            [[Paragraph("Recommended MMRI Category", ParagraphStyle('rc', parent=q_style, textColor=HexColor('#FFFFFF'))),
+              Paragraph(f"{confidence}% confidence", ParagraphStyle('cc', parent=a_style, textColor=gold_bright, alignment=TA_RIGHT))],
+             [Paragraph(matched_team, ParagraphStyle('mt', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=13, textColor=HexColor('#FFFFFF'))), '']],
+            colWidths=[5*inch, 1.75*inch]
         )
-        team_card_inner.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), maroon_dark),
-            ('LEFTPADDING', (0,0), (-1,-1), 16),
-            ('TOPPADDING', (0,0), (-1,0), 12),
-            ('BOTTOMPADDING', (0,1), (-1,1), 12),
+        recommended_row.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), maroon),
+            ('LEFTPADDING', (0,0), (-1,-1), 10),
+            ('TOPPADDING', (0,0), (-1,0), 8),
+            ('BOTTOMPADDING', (0,1), (-1,1), 10),
             ('TOPPADDING', (0,1), (-1,1), 2),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ]))
-        story.append(team_card_inner)
-        story.append(Spacer(1, 12))
+        story.append(recommended_row)
+        story.append(Spacer(1, 4))
 
-        story.append(Paragraph("NEXT STEPS", section_label_style))
-        steps = [
-            "MMRI team reaches out to confirm scope and quote",
-            "Quick kickoff and work begins",
-        ]
-        for i, step in enumerate(steps, 1):
-            row = Table(
-                [[Paragraph(str(i), ParagraphStyle(f'num{i}', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=HexColor('#FFFFFF'), alignment=TA_CENTER)),
-                  Paragraph(step, numbered_style)]],
-                colWidths=[0.3*inch, 5.9*inch]
-            )
-            row.setStyle(TableStyle([
-                ('BACKGROUND', (0,0), (0,0), maroon),
-                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-                ('LEFTPADDING', (0,0), (0,0), 0),
-                ('TOPPADDING', (0,0), (0,0), 4),
-                ('BOTTOMPADDING', (0,0), (0,0), 4),
-                ('LEFTPADDING', (1,0), (1,0), 10),
-            ]))
-            story.append(row)
-            story.append(Spacer(1, 4))
+        story.append(qa_box("Contact information.", f"{email} &nbsp;&middot;&nbsp; {phone}"))
+        story.append(qa_box("Next steps.", "MMRI team reaches out to confirm scope and quote. Kickoff and work begin shortly after."))
 
-        story.append(Spacer(1, 14))
-        story.append(HRFlowable(width="100%", thickness=0.75, color=line_col))
+        story.append(Spacer(1, 18))
+        story.append(HRFlowable(width="100%", thickness=2, color=maroon))
         story.append(Spacer(1, 6))
-        story.append(Paragraph(
-            "McMaster Manufacturing Research Institute &nbsp;&middot;&nbsp; 230 Longwood Road South, Hamilton, ON &nbsp;&middot;&nbsp; mmri-ad@mcmaster.ca &nbsp;&middot;&nbsp; 905-525-9140",
-            footer_style
-        ))
+        story.append(Paragraph("BRIGHTER WORLD", footer_brand_style))
 
         doc.build(story)
         
     else:
-        # ───────────────────────── ELABORATE FUNDED VERSION ─────────────────────────
+        # ───────────────────────── LETTERHEAD-STYLE FUNDED VERSION ─────────────────────────
         doc = SimpleDocTemplate(
             buffer, pagesize=letter,
-            rightMargin=0.85*inch, leftMargin=0.85*inch,
-            topMargin=0.65*inch, bottomMargin=0.7*inch
+            rightMargin=0.75*inch, leftMargin=0.75*inch,
+            topMargin=0.6*inch, bottomMargin=0.7*inch
         )
 
         table_header_bg = maroon
         table_alt_bg = HexColor('#F4F0EE')
         ink2 = HexColor('#231F20')
+        border_col = HexColor('#231F20')
+
+        uni_style = ParagraphStyle('Uni2', parent=styles['Normal'], fontName='Times-Bold', fontSize=15, textColor=ink2, leading=17)
+        eng_style = ParagraphStyle('Eng2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=ink2, leading=13, spaceBefore=1)
+        mmri_style = ParagraphStyle('Mmri2', parent=styles['Normal'], fontName='Helvetica', fontSize=9.5, textColor=ink_soft, leading=11)
+        contact_style = ParagraphStyle('Contact2', parent=styles['Normal'], fontName='Helvetica-Oblique', fontSize=8.5,
+            textColor=ink_soft, alignment=TA_RIGHT, leading=11)
+        table_header_style = ParagraphStyle('TH2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=ink2)
+        table_value_style = ParagraphStyle('TV2', parent=styles['Normal'], fontName='Helvetica', fontSize=10, textColor=ink2, leading=13)
+        q_style = ParagraphStyle('Q2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=ink2, spaceAfter=4, leading=13)
+        a_style = ParagraphStyle('A2', parent=styles['Normal'], fontName='Helvetica', fontSize=10, textColor=ink2, leading=14)
+        footer_brand_style = ParagraphStyle('FooterBrand2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=13, textColor=maroon)
 
         doc_title_style = ParagraphStyle('DocTitle', parent=styles['Title'], fontName='Helvetica-Bold',
-            fontSize=15, textColor=ink2, alignment=TA_CENTER, spaceAfter=14)
+            fontSize=15, textColor=ink2, alignment=TA_CENTER, spaceAfter=6)
         section_header_style = ParagraphStyle('SectionHeader', parent=styles['Normal'], fontName='Helvetica-Bold',
             fontSize=11.5, textColor=HexColor('#FFFFFF'), spaceBefore=0, spaceAfter=0, alignment=TA_CENTER)
         subsection_style = ParagraphStyle('Subsection', parent=styles['Normal'], fontName='Helvetica-Bold',
@@ -540,10 +550,22 @@ def generate_scoping():
             fontSize=10, textColor=ink_soft, spaceAfter=8, leading=14, leftIndent=14)
         header_field_label = ParagraphStyle('HFL', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=ink2)
         header_field_value = ParagraphStyle('HFV', parent=styles['Normal'], fontName='Helvetica', fontSize=10, textColor=ink2)
-        footer_style2 = ParagraphStyle('Footer2', parent=styles['Normal'], fontName='Helvetica', fontSize=8, textColor=ink_soft)
+
+        def qa_box(question, answer):
+            answer_flowables = [Paragraph(answer, a_style)] if isinstance(answer, str) else answer
+            cell_content = [Paragraph(question, q_style)] + answer_flowables
+            t = Table([[cell_content]], colWidths=[6.75*inch])
+            t.setStyle(TableStyle([
+                ('BOX', (0,0), (-1,-1), 0.75, border_col),
+                ('LEFTPADDING', (0,0), (-1,-1), 10),
+                ('RIGHTPADDING', (0,0), (-1,-1), 10),
+                ('TOPPADDING', (0,0), (-1,-1), 8),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ]))
+            return t
 
         def section_band(text):
-            t = Table([[Paragraph(text, section_header_style)]], colWidths=[6.3*inch])
+            t = Table([[Paragraph(text, section_header_style)]], colWidths=[6.75*inch])
             t.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,-1), table_header_bg),
                 ('TOPPADDING', (0,0), (-1,-1), 6),
@@ -553,21 +575,44 @@ def generate_scoping():
 
         story = []
 
-        header_data = [
-            [Paragraph("Date:", header_field_label), Paragraph(today_str, header_field_value)],
-            [Paragraph("Company Name:", header_field_label), Paragraph(company, header_field_value)],
-            [Paragraph("Report Title:", header_field_label), Paragraph(f"{company} Intake Summary", header_field_value)],
-            [Paragraph("Project Code:", header_field_label), Paragraph(project_code + " (pending assignment)", header_field_value)],
+        left_header = [
+            Paragraph("McMaster<br/>University", uni_style),
+            Spacer(1, 2),
+            Paragraph("ENGINEERING", eng_style),
+            Paragraph("McMaster Manufacturing<br/>Research Institute (MMRI)", mmri_style),
         ]
-        header_table = Table(header_data, colWidths=[1.5*inch, 4.8*inch])
-        header_table.setStyle(TableStyle([
+        right_header = [
+            Paragraph("<i>McMaster Manufacturing Research Institute</i>", contact_style),
+            Paragraph("230 Longwood Rd. S.", contact_style),
+            Paragraph("Hamilton, ON L8P 0A6", contact_style),
+            Spacer(1, 4),
+            Paragraph("(365) 366-6638", contact_style),
+            Paragraph("mmri-ad@mcmaster.ca", contact_style),
+            Paragraph("eng.mcmaster.ca/manufacturing-research-institute-mmri", contact_style),
+        ]
+        header_table_top = Table([[left_header, right_header]], colWidths=[3.2*inch, 3.55*inch])
+        header_table_top.setStyle(TableStyle([
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('RIGHTPADDING', (0,0), (-1,-1), 0),
         ]))
+        story.append(header_table_top)
+        story.append(Spacer(1, 12))
 
         story.append(Paragraph("Project Intake Summary", doc_title_style))
-        story.append(header_table)
+
+        info_header = [Paragraph("Name", table_header_style), Paragraph("Company", table_header_style), Paragraph("Date", table_header_style)]
+        info_values = [Paragraph(partner_name, table_value_style), Paragraph(company, table_value_style), Paragraph(today_str, table_value_style)]
+        info_table = Table([info_header, info_values], colWidths=[2.25*inch, 2.75*inch, 1.75*inch])
+        info_table.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.75, border_col),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('LEFTPADDING', (0,0), (-1,-1), 8),
+            ('RIGHTPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ]))
+        story.append(info_table)
         story.append(Spacer(1, 10))
 
         rev_data = [
@@ -580,7 +625,7 @@ def generate_scoping():
         ]
         rev_table = Table(rev_data, colWidths=[0.85*inch, 3.15*inch, 1*inch, 1.3*inch])
         rev_table.setStyle(TableStyle([
-            ('GRID', (0,0), (-1,-1), 0.5, HexColor('#999999')),
+            ('GRID', (0,0), (-1,-1), 0.5, border_col),
             ('BACKGROUND', (0,0), (-1,0), table_alt_bg),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('LEFTPADDING', (0,0), (-1,-1), 6),
@@ -603,55 +648,29 @@ def generate_scoping():
 
         story.append(section_band("1. Background"))
         story.append(Spacer(1, 6))
-        story.append(Paragraph("1.1 &nbsp;Partner Information", subsection_style))
-
-        info_data = [
-            [Paragraph("Contact Name", header_field_label), Paragraph(partner_name, body_style2),
-             Paragraph("Email", header_field_label), Paragraph(email, body_style2)],
-            [Paragraph("Company", header_field_label), Paragraph(company, body_style2),
-             Paragraph("Phone", header_field_label), Paragraph(phone, body_style2)],
-            [Paragraph("Company Size", header_field_label), Paragraph(company_size, body_style2),
-             Paragraph("Project Type", header_field_label), Paragraph(project_type, body_style2)],
-        ]
-        info_table = Table(info_data, colWidths=[1.2*inch, 1.95*inch, 1.0*inch, 2.15*inch])
-        info_table.setStyle(TableStyle([
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-            ('LEFTPADDING', (0,0), (-1,-1), 0),
-        ]))
-        story.append(info_table)
-
-        story.append(Paragraph("1.2 &nbsp;Company Overview", subsection_style))
-        story.append(Paragraph(overview if overview else "<i>Not provided during intake.</i>", body_style2))
-
-        story.append(Paragraph("1.3 &nbsp;Purpose", subsection_style))
-        story.append(Paragraph(
-            f"The purpose of this engagement is to support {company} in addressing the following challenge, "
-            f"as described during intake:", body_style2
-        ))
-        story.append(Paragraph(problem, body_style2))
-
-        story.append(Paragraph("1.4 &nbsp;Timeline &amp; Budget Considerations", subsection_style))
-        story.append(Paragraph(f"<b>Indicated timeline:</b> {timeline if timeline else 'Not specified'}", body_style2))
-        story.append(Paragraph("<i>Note: budget information was collected during intake but is withheld from this document for confidentiality. It is available internally to the MMRI team lead.</i>", placeholder_style))
+        story.append(qa_box("1.1 &nbsp;Contact Information", f"{email} &nbsp;&middot;&nbsp; {phone} &nbsp;&middot;&nbsp; Company size: {company_size} &nbsp;&middot;&nbsp; Project type: {project_type}"))
+        story.append(qa_box("1.2 &nbsp;Company Overview", overview if overview else "Not provided during intake."))
+        story.append(qa_box("1.3 &nbsp;Purpose", problem))
+        budget_line = budget_estimate if budget_estimate else "Not specified by partner (bucket range only, see internal notes)."
+        story.append(qa_box("1.4 &nbsp;Timeline &amp; Budget/ROI Considerations", f"<b>Indicated timeline:</b> {timeline if timeline else 'Not specified'}<br/><b>Budget/ROI estimate:</b> {budget_line}"))
 
         story.append(section_band("2. Recommended MMRI Team"))
         story.append(Spacer(1, 6))
-        team_data = [[
-            Paragraph(team_full_name, ParagraphStyle('tn2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=maroon)),
-            Paragraph(f"{confidence}% match confidence", ParagraphStyle('tc2', parent=body_style2, alignment=TA_LEFT))
-        ]]
-        team_table = Table(team_data, colWidths=[4*inch, 2.3*inch])
-        team_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), table_alt_bg),
-            ('BOX', (0,0), (-1,-1), 0.75, maroon),
-            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        recommended_row = Table(
+            [[Paragraph("Recommended MMRI Category", ParagraphStyle('rc2', parent=q_style, textColor=HexColor('#FFFFFF'))),
+              Paragraph(f"{confidence}% confidence", ParagraphStyle('cc2', parent=a_style, textColor=gold_bright, alignment=TA_RIGHT))],
+             [Paragraph(team_full_name, ParagraphStyle('mt2', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=13, textColor=HexColor('#FFFFFF'))), '']],
+            colWidths=[5*inch, 1.75*inch]
+        )
+        recommended_row.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,-1), maroon),
             ('LEFTPADDING', (0,0), (-1,-1), 10),
-            ('TOPPADDING', (0,0), (-1,-1), 8),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+            ('TOPPADDING', (0,0), (-1,0), 8),
+            ('BOTTOMPADDING', (0,1), (-1,1), 10),
+            ('TOPPADDING', (0,1), (-1,1), 2),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ]))
-        story.append(team_table)
-        
+        story.append(recommended_row)
 
         story.append(section_band("3. Project Requirements"))
         story.append(Spacer(1, 6))
@@ -661,14 +680,11 @@ def generate_scoping():
             "requirements for this engagement have not yet been defined and will be developed collaboratively "
             "by the assigned MMRI team lead in consultation with the partner.", body_style2
         ))
-        story.append(Paragraph("3.1 &nbsp;Scope of MMRI Involvement", subsection_style))
-        story.append(Paragraph("<i>To be defined by MMRI team lead following kickoff meeting.</i>", placeholder_style))
-        story.append(Paragraph("3.2 &nbsp;Items Outside of Project Scope", subsection_style))
-        story.append(Paragraph("<i>To be defined by MMRI team lead following kickoff meeting.</i>", placeholder_style))
+        story.append(qa_box("3.1 &nbsp;Scope of MMRI Involvement", "To be defined by MMRI team lead following kickoff meeting."))
+        story.append(qa_box("3.2 &nbsp;Items Outside of Project Scope", "To be defined by MMRI team lead following kickoff meeting."))
 
         story.append(section_band("4. Next Steps"))
         story.append(Spacer(1, 6))
-    
 
         steps_data = [
             ["No.", "Activity", "Description", "Status"],
@@ -700,7 +716,7 @@ def generate_scoping():
 
         steps_table = Table(steps_table_data, colWidths=[0.4*inch, 1.5*inch, 3.1*inch, 0.9*inch])
         steps_table.setStyle(TableStyle([
-            ('GRID', (0,0), (-1,-1), 0.5, HexColor('#999999')),
+            ('GRID', (0,0), (-1,-1), 0.5, border_col),
             ('BACKGROUND', (0,0), (-1,0), table_alt_bg),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
             ('TOPPADDING', (0,0), (-1,-1), 5),
@@ -710,13 +726,9 @@ def generate_scoping():
         story.append(steps_table)
 
         story.append(Spacer(1, 16))
-        story.append(HRFlowable(width="100%", thickness=1, color=maroon))
+        story.append(HRFlowable(width="100%", thickness=2, color=maroon))
         story.append(Spacer(1, 6))
-        story.append(Paragraph(
-            "McMaster Manufacturing Research Institute &nbsp;&middot;&nbsp; 230 Longwood Road South, Hamilton, ON L8P 0A6 "
-            "&nbsp;&middot;&nbsp; mmri-ad@mcmaster.ca &nbsp;&middot;&nbsp; 905-525-9140 &nbsp;&middot;&nbsp; Generated by ETHOS",
-            footer_style2
-        ))
+        story.append(Paragraph("BRIGHTER WORLD", footer_brand_style))
 
         doc.build(story)
 
