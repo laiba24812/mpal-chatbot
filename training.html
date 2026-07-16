@@ -4,246 +4,363 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MMRI Training Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --forest: #1A3C2E;
-    --forest-dark: #102518;
-    --green: #2D6A4F;
-    --green-light: #52B788;
-    --accent: #74C69D;
-    --paper: #F4FAF6;
-    --paper-dim: #E8F5EC;
-    --ink: #1A2E1F;
-    --ink-soft: #4A6358;
-    --line: #B7DFC8;
+    --maroon: #7A003C;
+    --maroon-dark: #5c002d;
+    --maroon-light: rgba(122,0,60,0.06);
+    --gold: #FDBF57;
+    --gold-dim: #D4A24C;
+    --white: #FFFFFF;
+    --bg: #F7F5F2;
+    --bg-card: #FFFFFF;
+    --bg-hover: #F2EEE8;
+    --border: #E8E2D8;
+    --border-strong: #D4CCBC;
+    --ink: #1A1612;
+    --ink-mid: #4A4038;
+    --ink-soft: #8A7E72;
+    --success: #1A7A3C;
+    --success-bg: #EBF7EF;
+    --success-border: #A8D8B8;
+    --error: #C0392B;
+    --error-bg: #FBEAEA;
+    --error-border: #F0CACA;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    background: var(--paper);
+    font-family: 'Poppins', Arial, sans-serif;
+    background: var(--bg);
     color: var(--ink);
-    padding: 32px;
     min-height: 100vh;
   }
 
-  .header {
-    background: linear-gradient(135deg, var(--forest) 0%, var(--forest-dark) 100%);
-    padding: 26px 30px;
-    border-radius: 14px;
-    margin-bottom: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 16px rgba(26,60,46,0.22);
+  .topbar {
+    background: var(--maroon);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(122,0,60,0.2);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .topbar-logo { font-size: 13px; font-weight: 700; color: var(--gold); letter-spacing: 1.5px; text-transform: uppercase; }
+  .topbar-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.15); }
+  .topbar-title { font-size: 13px; font-weight: 400; color: rgba(255,255,255,0.7); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .topbar-badge {
+    background: rgba(253,191,87,0.15); border: 1px solid rgba(253,191,87,0.3);
+    color: var(--gold); font-size: 10.5px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.3px;
+  }
+  .topbar-gold-line {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold-dim) 70%, transparent);
+    opacity: 0.5;
   }
 
-  .header::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--green-light), var(--accent));
+  .page { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .page-header p { font-size: 13px; color: var(--ink-soft); font-weight: 400; }
+
+  .stats-row { display: flex; gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 20px; flex: 1;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
+  .stat-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--maroon-light); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .stat-label { font-size: 11px; color: var(--ink-soft); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--ink); margin-top: 1px; }
 
-  .header h1 {
-    font-family: 'Georgia', serif;
-    color: var(--accent);
-    font-size: 21px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-full { grid-column: 1 / -1; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h2 { font-size: 14px; font-weight: 600; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .card-header .card-icon { font-size: 16px; }
+  .card-body { padding: 20px; }
+
+  .upload-zone {
+    border: 2px dashed var(--border-strong); border-radius: 10px;
+    padding: 40px 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; background: var(--bg); position: relative;
   }
-
-  .header p {
-    color: rgba(255,255,255,0.65);
-    font-size: 12.5px;
-    margin-top: 5px;
-  }
-
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
-
-  .card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 24px;
-    border: 1px solid var(--line);
-    box-shadow: 0 1px 3px rgba(26,60,46,0.06);
-  }
-
-  .card h2 {
-    color: var(--forest);
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-  }
-
-  .upload-area {
-    border: 2px dashed var(--green);
-    border-radius: 10px;
-    padding: 36px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-    background: var(--paper-dim);
-  }
-
-  .upload-area:hover { background: #d8f0e0; border-color: var(--forest); }
-  .upload-area p { color: var(--ink-soft); font-size: 13.5px; margin-top: 8px; }
+  .upload-zone:hover, .upload-zone.drag-over { border-color: var(--maroon); background: var(--maroon-light); }
+  .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 10px; }
+  .upload-title { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: var(--ink-soft); }
+  .upload-types { margin-top: 12px; display: flex; gap: 6px; justify-content: center; }
+  .type-tag { background: var(--bg); border: 1px solid var(--border); color: var(--ink-soft); font-size: 10.5px; font-weight: 500; padding: 3px 8px; border-radius: 4px; }
 
   .upload-btn {
-    background: var(--forest);
-    color: var(--accent);
-    border: none;
-    border-radius: 9px;
-    padding: 11px 20px;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 16px;
-    width: 100%;
-    transition: background 0.15s;
+    background: var(--maroon); color: #fff; border: none; border-radius: 8px;
+    padding: 11px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+    width: 100%; margin-top: 14px; transition: background 0.15s;
+    font-family: 'Poppins', Arial, sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
   }
+  .upload-btn:hover { background: var(--maroon-dark); }
 
-  .upload-btn:hover { background: var(--forest-dark); }
+  .status { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; display: none; font-weight: 500; }
+  .status.success { background: var(--success-bg); color: var(--success); display: flex; align-items: center; gap: 6px; border: 1px solid var(--success-border); }
+  .status.error { background: var(--error-bg); color: var(--error); display: flex; align-items: center; gap: 6px; border: 1px solid var(--error-border); }
+  .status.loading { background: var(--maroon-light); color: var(--maroon); display: flex; align-items: center; gap: 6px; border: 1px solid rgba(122,0,60,0.15); }
+  .status-spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(122,0,60,0.2); border-top-color: var(--maroon); animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .doc-list { display: flex; flex-direction: column; gap: 9px; }
+  .upload-progress { margin-top: 10px; display: none; }
+  .upload-progress.visible { display: block; }
+  .progress-track { background: var(--bg); border-radius: 4px; height: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--maroon), var(--gold-dim)); border-radius: 4px; width: 0%; transition: width 0.3s ease; }
+  .progress-label { font-size: 11px; color: var(--ink-soft); margin-top: 5px; }
 
+  .knowledge-empty { text-align: center; padding: 32px 16px; color: var(--ink-soft); font-size: 13px; }
+  .knowledge-empty .empty-icon { font-size: 32px; margin-bottom: 8px; }
+  .knowledge-text { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 12px; color: var(--ink-mid); max-height: 220px; overflow-y: auto; line-height: 1.7; font-family: Arial, sans-serif; white-space: pre-wrap; }
+  .knowledge-text::-webkit-scrollbar { width: 4px; }
+  .knowledge-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .knowledge-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .knowledge-tag { background: var(--maroon-light); color: var(--maroon); font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(122,0,60,0.12); }
+  .knowledge-size { font-size: 11px; color: var(--ink-soft); }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; }
   .doc-item {
-    background: var(--paper-dim);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 13px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 16px; display: flex; align-items: center; justify-content: space-between;
+    transition: all 0.15s;
   }
-
-  .doc-item span { color: var(--ink-soft); font-size: 12px; }
-  .doc-item .doc-name { color: var(--ink); font-weight: 600; }
-
+  .doc-item:hover { border-color: var(--border-strong); background: var(--bg-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .doc-left { display: flex; align-items: center; gap: 12px; }
+  .doc-file-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .doc-file-icon.pdf { background: rgba(192,57,43,0.08); }
+  .doc-file-icon.docx { background: rgba(26,86,219,0.08); }
+  .doc-file-icon.xlsx { background: rgba(26,122,62,0.08); }
+  .doc-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .doc-meta { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+  .doc-right { display: flex; align-items: center; gap: 8px; }
+  .doc-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
   .delete-btn {
-    background: none;
-    border: 1.5px solid var(--forest);
-    color: var(--forest);
-    border-radius: 7px;
-    padding: 5px 11px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
+    background: none; border: 1px solid var(--border); color: var(--ink-soft);
+    border-radius: 6px; padding: 5px 10px; font-size: 11.5px; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: 'Poppins', Arial, sans-serif;
   }
-  .delete-btn:hover { background: var(--paper-dim); }
+  .delete-btn:hover { border-color: var(--error); color: var(--error); background: var(--error-bg); }
 
-  .status {
-    margin-top: 14px;
-    padding: 11px 14px;
-    border-radius: 9px;
-    font-size: 13px;
-    display: none;
-    font-weight: 500;
+  .empty-state { text-align: center; padding: 28px 16px; color: var(--ink-soft); font-size: 13px; }
+  .empty-state .empty-icon { font-size: 28px; margin-bottom: 8px; }
+
+  .page-footer {
+    max-width: 1000px; margin: 0 auto; padding: 16px 24px 32px;
+    font-size: 11px; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border);
   }
-
-  .status.success { background: #E8F3E8; color: #2E7D32; display: block; border: 1px solid #C5E1C5; }
-  .status.error { background: #FBEAEA; color: #C0392B; display: block; border: 1px solid #F0CACA; }
-  .status.loading { background: var(--paper-dim); color: var(--forest); display: block; border: 1px solid var(--line); }
-
-  .knowledge-preview {
-    background: var(--paper-dim);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 16px;
-    font-size: 12.5px;
-    color: var(--ink-soft);
-    max-height: 200px;
-    overflow-y: auto;
-    line-height: 1.65;
-    margin-top: 10px;
-  }
-
-  .knowledge-preview::-webkit-scrollbar { width: 6px; }
-  .knowledge-preview::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
-
-  .empty-state { color: #A0B8A8; font-size: 13px; text-align: center; padding: 18px; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <h1>🧠 MMRI Training Agent</h1>
-    <p>Upload internal documents to train ETHOS · MMRI Managers</p>
+<div class="topbar" style="position:relative;">
+  <div class="topbar-left">
+    <div class="topbar-logo">MMRI</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-title">Training Agent</div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-badge">MANAGER ACCESS</div>
+  </div>
+  <div class="topbar-gold-line"></div>
+</div>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Knowledge Base Manager</h1>
+    <p>Upload internal documents to train ETHOS. All uploaded content is used to improve partner intake accuracy.</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">📄</div>
+      <div>
+        <div class="stat-label">Documents</div>
+        <div class="stat-value" id="stat-docs">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🧠</div>
+      <div>
+        <div class="stat-label">Knowledge Size</div>
+        <div class="stat-value" id="stat-size">—</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div>
+        <div class="stat-label">ETHOS Status</div>
+        <div class="stat-value" style="font-size:14px;color:#1A7A3C;">Active</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="card-icon">📤</span>Upload Document</h2>
+      </div>
+      <div class="card-body">
+        <div class="upload-zone" id="upload-zone"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <input type="file" id="file-input" accept=".pdf,.docx,.xlsx" onchange="uploadDoc()" />
+          <div class="upload-icon">📂</div>
+          <div class="upload-title">Drop your file here</div>
+          <div class="upload-sub">or click to browse</div>
+          <div class="upload-types">
+            <span class="type-tag">PDF</span>
+            <span class="type-tag">Word (.docx)</span>
+            <span class="type-tag">Excel (.xlsx)</span>
+          </div>
+        </div>
+
+        <div class="upload-progress" id="upload-progress">
+          <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+          <div class="progress-label" id="progress-label">Uploading…</div>
+        </div>
+
+        <div id="upload-status" class="status"></div>
+
+        <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+          <span>+</span> Choose File to Upload
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2><span class="card-icon">🔍</span>Knowledge Preview</h2>
+        <span style="font-size:11px;color:var(--ink-soft)">What ETHOS currently knows</span>
+      </div>
+      <div class="card-body">
+        <div id="knowledge-container">
+          <div class="knowledge-empty">
+            <div class="empty-icon">🧠</div>
+            <div>No knowledge base yet</div>
+            <div style="font-size:11.5px;margin-top:4px;">Upload documents to get started</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card grid-full">
+      <div class="card-header">
+        <h2><span class="card-icon">📚</span>Uploaded Documents</h2>
+        <span style="font-size:11px;color:var(--ink-soft)" id="doc-count-label">Loading…</span>
+      </div>
+      <div class="card-body">
+        <div class="doc-list" id="doc-list">
+          <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <div>No documents uploaded yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="grid">
-  <div class="card">
-    <h2>📤 Upload Document</h2>
-    <div class="upload-area" onclick="document.getElementById('file-input').click()">
-      <div style="font-size: 30px;">📄</div>
-      <p>Click to upload a PDF or Word document</p>
-      <p style="font-size: 11.5px; margin-top: 4px;">Reports, success stories, project docs</p>
-      <input type="file" id="file-input" accept=".pdf,.docx" style="display:none;" onchange="uploadDoc()" />
-    </div>
-    <div id="upload-status" class="status"></div>
-    <button class="upload-btn" onclick="document.getElementById('file-input').click()">+ Upload Document</button>
-  </div>
-
-  <div class="card">
-    <h2>🔍 Knowledge Base Preview</h2>
-    <p style="font-size: 12.5px; color: var(--ink-soft);">What ETHOS currently knows:</p>
-    <div class="knowledge-preview" id="knowledge-preview">
-      Loading knowledge base...
-    </div>
-  </div>
-
-  <div class="card" style="grid-column: 1 / -1;">
-    <h2>📚 Uploaded Documents</h2>
-    <div class="doc-list" id="doc-list">
-      <div class="empty-state">No documents uploaded yet</div>
-    </div>
-  </div>
+<div class="page-footer">
+  <span>McMaster Manufacturing Research Institute · Training Agent v2.0</span>
+  <span>230 Longwood Road South, Hamilton ON · mmri-ad@mcmaster.ca</span>
 </div>
 
 <script>
   const API_URL = "https://mpal-chatbot.onrender.com";
 
-  async function uploadDoc() {
-    const fileInput = document.getElementById('file-input');
-    const file = fileInput.files[0];
-    if (!file) return;
+  function getFileIcon(name) {
+    if (!name) return '📄';
+    const ext = name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') return '📕';
+    if (ext === 'docx' || ext === 'doc') return '📘';
+    if (ext === 'xlsx' || ext === 'xls') return '📗';
+    return '📄';
+  }
 
+  function getFileClass(name) {
+    if (!name) return '';
+    const ext = name.split('.').pop().toLowerCase();
+    if (ext === 'pdf') return 'pdf';
+    if (ext === 'docx' || ext === 'doc') return 'docx';
+    if (ext === 'xlsx' || ext === 'xls') return 'xlsx';
+    return '';
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.add('drag-over');
+  }
+  function handleDragLeave(e) {
+    document.getElementById('upload-zone').classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }
+
+  async function uploadDoc() {
+    const file = document.getElementById('file-input').files[0];
+    if (!file) return;
+    await uploadFile(file);
+    document.getElementById('file-input').value = '';
+  }
+
+  async function uploadFile(file) {
     const status = document.getElementById('upload-status');
+    const progress = document.getElementById('upload-progress');
+    const fill = document.getElementById('progress-fill');
+    const label = document.getElementById('progress-label');
+
     status.className = 'status loading';
-    status.innerText = `Uploading ${file.name}...`;
+    status.innerHTML = '<div class="status-spinner"></div> Uploading ' + file.name + '…';
+    progress.classList.add('visible');
+    fill.style.width = '0%';
+    label.textContent = 'Preparing upload…';
+
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 15, 85);
+      fill.style.width = pct + '%';
+      label.textContent = `Uploading… ${Math.round(pct)}%`;
+    }, 200);
 
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${API_URL}/api/train`, {
-        method: 'POST',
-        body: formData
-      });
+      const response = await fetch(`${API_URL}/api/train`, { method: 'POST', body: formData });
       const data = await response.json();
+      clearInterval(interval);
+      fill.style.width = '100%';
+      label.textContent = 'Complete!';
+      setTimeout(() => progress.classList.remove('visible'), 2000);
       status.className = 'status success';
-      status.innerText = `✅ ${file.name} uploaded successfully!`;
-      loadDocs();
-      loadKnowledge();
+      status.innerHTML = '✅ ' + file.name + ' uploaded successfully!';
+      loadDocs(); loadKnowledge();
     } catch (err) {
+      clearInterval(interval);
+      progress.classList.remove('visible');
       status.className = 'status error';
-      status.innerText = `❌ Failed to upload ${file.name}. Please try again.`;
+      status.innerHTML = '❌ Failed to upload ' + file.name + '. Please try again.';
     }
-
-    fileInput.value = '';
   }
 
   async function loadDocs() {
@@ -251,43 +368,67 @@
       const response = await fetch(`${API_URL}/api/docs`);
       const data = await response.json();
       const list = document.getElementById('doc-list');
+      const countLabel = document.getElementById('doc-count-label');
+      const statDocs = document.getElementById('stat-docs');
+      const count = data.docs ? data.docs.length : 0;
+      countLabel.textContent = count + ' document' + (count !== 1 ? 's' : '');
+      statDocs.textContent = count;
 
-      if (data.docs.length === 0) {
-        list.innerHTML = '<div class="empty-state">No documents uploaded yet</div>';
+      if (!data.docs || data.docs.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon">📁</div><div>No documents uploaded yet</div></div>';
         return;
       }
 
       list.innerHTML = data.docs.map(doc => `
         <div class="doc-item">
-          <div>
-            <div class="doc-name">📄 ${doc.name}</div>
-            <span>${doc.date}</span>
+          <div class="doc-left">
+            <div class="doc-file-icon ${getFileClass(doc.name)}">${getFileIcon(doc.name)}</div>
+            <div>
+              <div class="doc-name">${doc.name}</div>
+              <div class="doc-meta">Uploaded ${doc.date}</div>
+            </div>
           </div>
-          <button class="delete-btn" onclick="deleteDoc('${doc.id}')">Delete</button>
+          <div class="doc-right">
+            <div class="doc-status-dot"></div>
+            <button class="delete-btn" onclick="deleteDoc('${doc.id}')">Remove</button>
+          </div>
         </div>
       `).join('');
-    } catch (err) {
-      console.error('Failed to load docs:', err);
-    }
+    } catch (err) { console.error('Failed to load docs:', err); }
   }
 
   async function deleteDoc(id) {
     try {
       await fetch(`${API_URL}/api/docs/${id}`, { method: 'DELETE' });
-      loadDocs();
-      loadKnowledge();
-    } catch (err) {
-      console.error('Failed to delete doc:', err);
-    }
+      loadDocs(); loadKnowledge();
+    } catch (err) { console.error('Failed to delete:', err); }
   }
 
   async function loadKnowledge() {
     try {
       const response = await fetch(`${API_URL}/api/knowledge`);
       const data = await response.json();
-      document.getElementById('knowledge-preview').innerText = data.knowledge || 'No knowledge base yet — upload some documents!';
+      const container = document.getElementById('knowledge-container');
+      const statSize = document.getElementById('stat-size');
+      const knowledge = data.knowledge || '';
+
+      if (!knowledge || knowledge.trim() === '') {
+        container.innerHTML = '<div class="knowledge-empty"><div class="empty-icon">🧠</div><div>No knowledge base yet</div><div style="font-size:11.5px;margin-top:4px;">Upload documents to get started</div></div>';
+        statSize.textContent = '0 KB';
+        return;
+      }
+
+      const sizeKB = Math.round(knowledge.length / 1024 * 10) / 10;
+      statSize.textContent = sizeKB + ' KB';
+      container.innerHTML = `
+        <div class="knowledge-meta">
+          <span class="knowledge-tag">✓ Active</span>
+          <span class="knowledge-size">${sizeKB} KB · ${knowledge.split(' ').length.toLocaleString()} words</span>
+        </div>
+        <div class="knowledge-text">${knowledge.substring(0, 800)}${knowledge.length > 800 ? '…' : ''}</div>
+      `;
     } catch (err) {
-      document.getElementById('knowledge-preview').innerText = 'Could not load knowledge base.';
+      document.getElementById('knowledge-container').innerHTML = '<div class="knowledge-empty"><div>Could not load knowledge base</div></div>';
     }
   }
 
