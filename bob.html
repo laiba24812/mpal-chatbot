@@ -3,242 +3,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOB · MMRI Terminal</title>
+<title>BOB · MMRI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --black: #080C08;
-    --dark: #0C120C;
-    --darker: #0A0F0A;
-    --green: #00FF41;
-    --green-dim: #00CC33;
-    --green-dark: #004D10;
-    --green-glow: rgba(0,255,65,0.15);
-    --green-border: rgba(0,255,65,0.2);
-    --amber: #FFB800;
-    --red: #FF3333;
-    --ink: #00DD38;
-    --ink-soft: #007A1C;
-    --line: rgba(0,255,65,0.08);
+    --navy: #0F1523;
+    --navy-mid: #141C2E;
+    --navy-light: #1A2338;
+    --blue: #007096;
+    --blue-bright: #0099CC;
+    --blue-dim: rgba(0,112,150,0.12);
+    --gold: #FDBF57;
+    --green: #00D084;
+    --white: #FFFFFF;
+    --ink: #C8D8E8;
+    --ink-soft: #5A7A96;
+    --line: rgba(255,255,255,0.06);
+    --msg-bot: #1A2338;
+    --msg-user: #007096;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: transparent; font-family: 'Courier New', Courier, monospace; }
+  body { background: transparent; font-family: 'Poppins', Arial, sans-serif; }
 
   #bob-bubble {
     position: fixed; bottom: 24px; right: 24px;
-    width: 60px; height: 60px; border-radius: 4px;
+    width: 60px; height: 60px; border-radius: 50%;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    z-index: 9999; background: var(--black);
-    border: 1px solid var(--green-dim);
-    box-shadow: 0 0 20px var(--green-glow), inset 0 0 20px rgba(0,255,65,0.03);
-    transition: transform 0.15s, box-shadow 0.2s;
-    animation: bubble-pulse 2s ease-in-out infinite;
+    z-index: 9999; background: var(--blue);
+    box-shadow: 0 4px 20px rgba(0,112,150,0.4);
+    transition: transform 0.2s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
   }
-  @keyframes bubble-pulse {
-    0%,100% { box-shadow: 0 0 15px var(--green-glow); }
-    50% { box-shadow: 0 0 30px rgba(0,255,65,0.25), 0 0 60px rgba(0,255,65,0.08); }
+  #bob-bubble:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(0,112,150,0.55); }
+  #bob-bubble::before {
+    content: ''; position: absolute; inset: -5px; border-radius: 50%;
+    border: 1.5px solid rgba(0,153,204,0.4); opacity: 0;
+    animation: ring-pulse 3s ease-out infinite;
   }
-  #bob-bubble:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,255,65,0.3); }
-  #bob-bubble svg { width: 24px; height: 24px; fill: var(--green); }
-  .bubble-corner {
-    position: absolute; width: 6px; height: 6px;
-    border-color: var(--green-dim); border-style: solid;
+  @keyframes ring-pulse {
+    0% { opacity: 0.6; transform: scale(0.9); }
+    70% { opacity: 0; transform: scale(1.2); }
+    100% { opacity: 0; }
   }
-  .bubble-corner.tl { top: 2px; left: 2px; border-width: 1px 0 0 1px; }
-  .bubble-corner.tr { top: 2px; right: 2px; border-width: 1px 1px 0 0; }
-  .bubble-corner.bl { bottom: 2px; left: 2px; border-width: 0 0 1px 1px; }
-  .bubble-corner.br { bottom: 2px; right: 2px; border-width: 0 1px 1px 0; }
+  #bob-bubble svg { width: 24px; height: 24px; fill: #fff; position: relative; z-index: 1; }
 
   #bob-window {
     position: fixed; bottom: 96px; right: 24px;
-    width: 440px; height: 640px; border-radius: 4px;
+    width: 400px; height: 580px; border-radius: 16px;
     display: none; flex-direction: column; overflow: hidden;
-    z-index: 9998; background: var(--black);
-    border: 1px solid var(--green-dim);
-    box-shadow: 0 0 40px var(--green-glow), 0 0 80px rgba(0,255,65,0.04), inset 0 0 40px rgba(0,255,65,0.02);
+    z-index: 9998; background: var(--navy);
+    border: 1px solid rgba(0,112,150,0.2);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,112,150,0.08);
   }
-  #bob-window::before {
-    content: ''; position: absolute; top: -1px; left: -1px;
-    width: 16px; height: 16px;
-    border-top: 2px solid var(--green); border-left: 2px solid var(--green);
-    z-index: 20; pointer-events: none;
-    box-shadow: -2px -2px 8px rgba(0,255,65,0.4);
-  }
-  #bob-window::after {
-    content: ''; position: absolute; bottom: -1px; right: -1px;
-    width: 16px; height: 16px;
-    border-bottom: 2px solid var(--green); border-right: 2px solid var(--green);
-    z-index: 20; pointer-events: none;
-    box-shadow: 2px 2px 8px rgba(0,255,65,0.4);
-  }
-  .corner-br { position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 2px solid var(--green-dim); border-left: 2px solid var(--green-dim); z-index: 20; pointer-events: none; }
-  .corner-tr { position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 2px solid var(--green-dim); border-right: 2px solid var(--green-dim); z-index: 20; pointer-events: none; }
-
-  #bob-window.open { display: flex; animation: terminal-open 0.2s ease; }
-  @keyframes terminal-open {
-    from { opacity: 0; transform: translateY(10px) scaleY(0.95); }
-    to { opacity: 1; transform: translateY(0) scaleY(1); }
-  }
-
-  .scanlines {
-    position: absolute; inset: 0; pointer-events: none; z-index: 1;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
-    border-radius: 4px;
+  #bob-window.open { display: flex; animation: window-rise 0.3s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes window-rise {
+    from { opacity: 0; transform: translateY(16px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .bob-header {
-    background: var(--darker); border-bottom: 1px solid var(--green-border);
-    padding: 0; flex-shrink: 0; z-index: 5; position: relative;
-  }
-  .bob-titlebar {
-    padding: 8px 14px;
+    background: var(--navy-mid); padding: 14px 18px;
     display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid rgba(0,255,65,0.06);
+    border-bottom: 1px solid var(--line); flex-shrink: 0; position: relative;
   }
-  .bob-titlebar-left { display: flex; align-items: center; gap: 8px; }
-  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .term-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(255,51,51,0.5); }
-  .term-dot.amber { background: var(--amber); box-shadow: 0 0 6px rgba(255,184,0,0.5); }
-  .term-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(0,255,65,0.5); animation: dot-pulse 2s ease-in-out infinite; }
-  @keyframes dot-pulse {
-    0%,100% { box-shadow: 0 0 4px rgba(0,255,65,0.5); }
-    50% { box-shadow: 0 0 10px rgba(0,255,65,0.8); }
+  .bob-header::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blue) 50%, transparent);
+    opacity: 0.4;
   }
-  .bob-title { font-size: 11px; color: var(--green-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: normal; }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue), #005577);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,112,150,0.3);
+  }
+  .header-info { display: flex; flex-direction: column; gap: 1px; }
+  .header-name {
+    font-size: 14.5px; font-weight: 600; color: #fff;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .online-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 6px var(--green); animation: dot-glow 2.5s ease-in-out infinite;
+  }
+  @keyframes dot-glow {
+    0%,100% { box-shadow: 0 0 4px var(--green); }
+    50% { box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,208,132,0.3); }
+  }
+  .header-sub { font-size: 11px; color: var(--ink-soft); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .staff-badge {
+    background: rgba(0,112,150,0.15); border: 1px solid rgba(0,112,150,0.3);
+    color: var(--blue-bright); font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 12px; letter-spacing: 0.3px;
+  }
   .header-close {
-    background: none; border: 1px solid rgba(0,255,65,0.2);
-    color: var(--green-dim); width: 22px; height: 22px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.5); width: 26px; height: 26px; border-radius: 8px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
-    font-size: 11px; transition: all 0.15s; font-family: 'Courier New', monospace; border-radius: 2px;
+    font-size: 12px; transition: all 0.15s; font-family: Arial, sans-serif;
   }
-  .header-close:hover { border-color: var(--red); color: var(--red); box-shadow: 0 0 8px rgba(255,51,51,0.3); }
-
-  .bob-sysinfo {
-    padding: 6px 14px; font-size: 9.5px; color: var(--ink-soft); letter-spacing: 0.3px;
-    display: flex; justify-content: space-between;
-  }
-  .sysinfo-right { color: rgba(0,255,65,0.3); }
-
-  .bob-progress-wrap { background: rgba(0,255,65,0.05); height: 2px; flex-shrink: 0; }
-  .bob-progress-fill {
-    height: 100%; width: 100%; background: var(--green);
-    box-shadow: 0 0 6px var(--green);
-    animation: progress-flicker 4s ease-in-out infinite;
-  }
-  @keyframes progress-flicker {
-    0%,100% { opacity: 1; } 50% { opacity: 0.7; } 75% { opacity: 1; }
-  }
+  .header-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
 
   .bob-messages {
-    flex: 1; overflow-y: auto; padding: 12px 14px 8px;
-    display: flex; flex-direction: column; gap: 4px;
-    position: relative; z-index: 2; scroll-behavior: smooth;
+    flex: 1; overflow-y: auto; padding: 16px 14px 8px;
+    display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth;
   }
   .bob-messages::-webkit-scrollbar { width: 4px; }
-  .bob-messages::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 0; }
-  .bob-messages::-webkit-scrollbar-track { background: var(--black); }
+  .bob-messages::-webkit-scrollbar-thumb { background: rgba(0,112,150,0.2); border-radius: 4px; }
 
-  .bob-msg { font-size: 12.5px; line-height: 1.7; animation: line-appear 0.1s ease both; }
-  @keyframes line-appear { from { opacity: 0; } to { opacity: 1; } }
-  .bob-msg.bot { color: var(--ink); align-self: flex-start; width: 100%; }
-  .bob-msg.user { color: var(--amber); align-self: flex-start; width: 100%; }
-  .msg-prompt { color: var(--green-dim); margin-right: 6px; }
-  .msg-prefix-bot { color: var(--green-dim); font-size: 11px; display: block; margin-bottom: 2px; }
-
-  .tw-cursor {
-    display: inline-block; width: 8px; height: 14px;
-    background: var(--green); margin-left: 1px; vertical-align: middle;
-    animation: block-blink 0.8s step-end infinite;
+  .bob-msg {
+    max-width: 84%; padding: 10px 14px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.6;
+    animation: msg-in 0.22s cubic-bezier(0.34,1.56,.64,1) both;
   }
-  @keyframes block-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+  @keyframes msg-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .bob-msg.bot {
+    background: var(--msg-bot); color: var(--ink); align-self: flex-start;
+    border: 1px solid rgba(255,255,255,0.06); border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .bob-msg.bot strong { color: #fff; }
+  .bob-msg.user {
+    background: var(--msg-user); color: #fff; align-self: flex-end;
+    border-bottom-right-radius: 4px; box-shadow: 0 2px 8px rgba(0,112,150,0.3);
+  }
+  .msg-receipt { font-size: 10px; color: rgba(255,255,255,0.35); text-align: right; margin-top: 4px; }
 
-  .bob-typing { color: var(--ink-soft); font-size: 12px; animation: line-appear 0.1s ease both; }
-  .typing-dots::after { content: ''; animation: dots 1.2s steps(4, end) infinite; }
-  @keyframes dots {
-    0%,20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%,100% { content: '...'; }
+  .bob-typing {
+    align-self: flex-start; background: var(--msg-bot);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 12px 16px; border-radius: 14px; border-bottom-left-radius: 4px;
+    display: flex; gap: 5px; align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .bob-typing span {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--blue-bright);
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .bob-typing span:nth-child(2) { animation-delay: 0.15s; }
+  .bob-typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-5px); opacity: 1; }
   }
 
   .bob-report-btn {
-    background: none; color: var(--green-dim);
-    border: 1px solid var(--green-border);
-    padding: 4px 10px; font-size: 11px; cursor: pointer;
-    font-family: 'Courier New', monospace; letter-spacing: 0.3px;
-    margin-top: 6px; display: inline-block; transition: all 0.15s; border-radius: 2px;
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(0,112,150,0.12); color: var(--blue-bright);
+    border: 1px solid rgba(0,112,150,0.25); border-radius: 6px;
+    padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer;
+    margin-top: 8px; transition: all 0.15s; font-family: 'Poppins', Arial, sans-serif;
   }
-  .bob-report-btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+  .bob-report-btn:hover { background: rgba(0,112,150,0.22); border-color: var(--blue-bright); }
 
   .bob-input-area {
-    padding: 8px 14px 12px; border-top: 1px solid var(--green-border);
-    background: var(--darker); flex-shrink: 0; position: relative; z-index: 5;
+    padding: 10px 12px 14px; border-top: 1px solid var(--line);
+    background: var(--navy-mid); flex-shrink: 0;
   }
-  .input-prompt-line {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 9.5px; color: var(--ink-soft); margin-bottom: 6px; letter-spacing: 0.3px;
-  }
-  .prompt-ready { color: var(--green); animation: dot-pulse 1.5s ease-in-out infinite; }
-  .bob-input-row { display: flex; gap: 0; align-items: center; }
-  .input-prompt-char { color: var(--green); font-size: 13px; margin-right: 8px; flex-shrink: 0; }
+  .bob-input-row { display: flex; gap: 8px; align-items: center; }
   .bob-input-area input {
-    flex: 1; background: none; border: none;
-    color: var(--green); font-size: 13px; outline: none;
-    font-family: 'Courier New', Courier, monospace; caret-color: var(--green);
+    flex: 1; background: var(--navy-light);
+    border: 1px solid rgba(0,112,150,0.18); border-radius: 22px;
+    padding: 10px 16px; color: var(--ink); font-size: 13.5px; outline: none;
+    transition: all 0.15s; font-family: 'Poppins', Arial, sans-serif;
   }
-  .bob-input-area input::placeholder { color: rgba(0,255,65,0.2); }
+  .bob-input-area input:focus { border-color: rgba(0,112,150,0.45); box-shadow: 0 0 0 3px rgba(0,112,150,0.08); }
+  .bob-input-area input::placeholder { color: rgba(255,255,255,0.18); }
   .send-btn {
-    background: none; border: 1px solid var(--green-border);
-    color: var(--green-dim); padding: 4px 10px; cursor: pointer;
-    font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.5px;
-    transition: all 0.15s; border-radius: 2px; flex-shrink: 0;
+    background: var(--blue); border: none; border-radius: 50%;
+    width: 40px; height: 40px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,112,150,0.3);
   }
-  .send-btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 8px var(--green-glow); }
+  .send-btn:hover { background: var(--blue-bright); transform: scale(1.06); }
+  .send-btn svg { width: 16px; height: 16px; fill: #fff; }
 </style>
 </head>
 <body>
 
 <div id="bob-bubble" onclick="toggleBob()">
-  <div class="bubble-corner tl"></div>
-  <div class="bubble-corner tr"></div>
-  <div class="bubble-corner bl"></div>
-  <div class="bubble-corner br"></div>
-  <svg viewBox="0 0 24 24"><path d="M20 3H4v10l4 4h4v4l4-4h4V3zm-4 8h-8V9h8v2zm0-4H8V5h8v2z"/></svg>
+  <svg viewBox="0 0 24 24"><path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
 </div>
 
 <div id="bob-window">
-  <div class="corner-br"></div>
-  <div class="corner-tr"></div>
-  <div class="scanlines"></div>
-
   <div class="bob-header">
-    <div class="bob-titlebar">
-      <div class="bob-titlebar-left">
-        <div class="term-dot red"></div>
-        <div class="term-dot amber"></div>
-        <div class="term-dot green"></div>
-        <span class="bob-title">BOB v2.0 — MMRI Internal Assistant</span>
+    <div class="header-left">
+      <div class="header-avatar">🤖</div>
+      <div class="header-info">
+        <div class="header-name"><span class="online-dot"></span>BOB</div>
+        <div class="header-sub">MMRI Internal Assistant</div>
       </div>
+    </div>
+    <div class="header-right">
+      <div class="staff-badge">STAFF ONLY</div>
       <button class="header-close" onclick="toggleBob()">✕</button>
     </div>
-    <div class="bob-sysinfo">
-      <span>SESSION: STAFF-ONLY · ENCRYPTED · MMRI-SECURE</span>
-      <span class="sysinfo-right" id="bob-clock"></span>
-    </div>
-  </div>
-
-  <div class="bob-progress-wrap">
-    <div class="bob-progress-fill"></div>
   </div>
 
   <div class="bob-messages" id="bob-messages"></div>
 
   <div class="bob-input-area">
-    <div class="input-prompt-line">
-      <span class="prompt-ready">●</span>
-      <span>READY — type your query and press ENTER or RUN</span>
-    </div>
     <div class="bob-input-row">
-      <span class="input-prompt-char">$</span>
-      <input type="text" id="bob-input" placeholder="query --mmri" onkeydown="if(event.key==='Enter')sendBobMessage()" />
-      <button class="send-btn" onclick="sendBobMessage()">[ RUN ]</button>
+      <input type="text" id="bob-input" placeholder="Ask about partners, projects, workflows…" onkeydown="if(event.key==='Enter')sendBobMessage()" />
+      <button class="send-btn" onclick="sendBobMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -247,104 +222,46 @@
   const API_URL = "https://mpal-chatbot.onrender.com";
   let conversation = [], isOpen = false;
 
-  function updateClock() {
-    const el = document.getElementById('bob-clock');
-    if (el) el.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }
-  setInterval(updateClock, 1000); updateClock();
-
   function toggleBob() {
     isOpen = !isOpen;
     const win = document.getElementById('bob-window');
     if (isOpen) {
       win.classList.add('open');
-      if (conversation.length === 0) printBoot();
+      if (conversation.length === 0) {
+        addBotMessage("Hi! I'm BOB, MMRI's internal assistant. I can help you find info about partners, check project status, look up workflows, and search the knowledge base.\n\nWhat would you like to know?");
+      }
     } else {
       win.classList.remove('open');
     }
   }
 
-  function printBoot() {
-    const lines = [
-      'McMaster Manufacturing Research Institute',
-      'BOB v2.0 — Internal Knowledge Assistant',
-      '─────────────────────────────────────────',
-      'Loading knowledge base...        [  OK  ]',
-      'Loading project database...      [  OK  ]',
-      'Loading ETHOS conversations...   [  OK  ]',
-      'Loading workflow data...         [  OK  ]',
-      '─────────────────────────────────────────',
-      'Type your query below. Examples:',
-      '  > How many active projects?',
-      '  > What is the status of SKATE11?',
-      '  > What happens after Q Accept?',
-      '  > Who is the MSL lead?',
-      '',
-    ];
-    let i = 0;
-    function printLine() {
-      if (i < lines.length) {
-        addSystemLine(lines[i]); i++;
-        setTimeout(printLine, 60);
-      }
-    }
-    printLine();
-  }
-
-  function addSystemLine(text) {
+  function addBotMessage(text, showReport = false) {
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
     div.className = 'bob-msg bot';
-    div.innerHTML = `<span style="color:var(--ink-soft)">${text}</span>`;
-    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
-  }
-
-  function typewriterMessage(text, onDone) {
-    const messages = document.getElementById('bob-messages');
-    const promptDiv = document.createElement('div');
-    promptDiv.className = 'bob-msg bot';
-    promptDiv.innerHTML = `<span class="msg-prefix-bot">BOB@mmri:~$ output</span>`;
-    messages.appendChild(promptDiv);
-
-    const div = document.createElement('div');
-    div.className = 'bob-msg bot';
-    const cursor = document.createElement('span');
-    cursor.className = 'tw-cursor'; div.appendChild(cursor);
-    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
-
-    let i = 0;
-    function type() {
-      if (i < text.length) {
-        const c = text[i];
-        if (c === '\n') { div.insertBefore(document.createElement('br'), cursor); }
-        else {
-          let last = null;
-          for (let j = div.childNodes.length - 1; j >= 0; j--) {
-            if (div.childNodes[j] !== cursor && div.childNodes[j].nodeType === 3) { last = div.childNodes[j]; break; }
-          }
-          if (!last) div.insertBefore(document.createTextNode(c), cursor);
-          else last.textContent += c;
-        }
-        i++; messages.scrollTop = messages.scrollHeight;
-        setTimeout(type, 10);
-      } else {
-        cursor.remove();
-        const doneDiv = document.createElement('div');
-        doneDiv.className = 'bob-msg bot';
-        doneDiv.innerHTML = `<span style="color:var(--ink-soft)">─────────────────────────── [DONE]</span>`;
-        messages.appendChild(doneDiv); messages.scrollTop = messages.scrollHeight;
-        if (onDone) onDone();
-      }
+    div.innerHTML = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    if (showReport) {
+      const btn = document.createElement('button');
+      btn.className = 'bob-report-btn';
+      btn.innerHTML = '📄 Export Report';
+      btn.onclick = () => downloadReport(text);
+      div.appendChild(btn);
     }
-    type(); return div;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return div;
   }
 
   function addUserMessage(text) {
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
     div.className = 'bob-msg user';
-    div.innerHTML = `<span class="msg-prompt">$</span><span>${text}</span>`;
-    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    div.innerHTML = text.replace(/\n/g,'<br>') + `<div class="msg-receipt">✓✓ ${now}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
     return div;
   }
 
@@ -352,14 +269,16 @@
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
     div.className = 'bob-typing';
-    div.innerHTML = `<span style="color:var(--ink-soft)">BOB@mmri:~$ processing<span class="typing-dots"></span></span>`;
-    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
+    div.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
     return div;
   }
 
   async function sendBobMessage() {
     const input = document.getElementById('bob-input');
-    const text = input.value.trim(); if (!text) return;
+    const text = input.value.trim();
+    if (!text) return;
     input.value = '';
     addUserMessage(text);
     conversation.push({ role: 'user', content: text });
@@ -372,20 +291,11 @@
       const data = await response.json();
       typing.remove();
       const reply = data.response;
-      typewriterMessage(reply, () => {
-        const lastBot = document.querySelector('.bob-msg.bot:last-of-type');
-        if (lastBot) {
-          const btn = document.createElement('button');
-          btn.className = 'bob-report-btn';
-          btn.textContent = '[ EXPORT REPORT ]';
-          btn.onclick = () => downloadReport(reply);
-          lastBot.appendChild(btn);
-        }
-      });
+      addBotMessage(reply, true);
       conversation.push({ role: 'assistant', content: reply });
     } catch (err) {
       typing.remove();
-      addSystemLine('ERROR: Connection failed. Retry or contact system administrator.');
+      addBotMessage('Sorry, I had trouble connecting. Please try again.');
     }
   }
 
@@ -402,7 +312,7 @@
       a.href = url; a.download = `MMRI_Report_${Date.now()}.pdf`; a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      addSystemLine('ERROR: Report generation failed.');
+      addBotMessage('Could not generate report. Please try again.');
     }
   }
 </script>
