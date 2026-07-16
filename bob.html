@@ -3,342 +3,348 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BOB · MMRI Internal Assistant</title>
+<title>BOB · MMRI Terminal</title>
 <style>
   :root {
-    --navy: #1B2A4A;
-    --navy-dark: #111D33;
-    --blue: #2C4A7C;
-    --blue-light: #5B8DB8;
-    --accent: #7BAFD4;
-    --paper: #F4F7FB;
-    --paper-dim: #E8EDF5;
-    --ink: #1B2A4A;
-    --ink-soft: #4A5568;
-    --line: #CBD5E0;
+    --black: #080C08;
+    --dark: #0C120C;
+    --darker: #0A0F0A;
+    --green: #00FF41;
+    --green-dim: #00CC33;
+    --green-dark: #004D10;
+    --green-glow: rgba(0,255,65,0.15);
+    --green-border: rgba(0,255,65,0.2);
+    --amber: #FFB800;
+    --red: #FF3333;
+    --ink: #00DD38;
+    --ink-soft: #007A1C;
+    --line: rgba(0,255,65,0.08);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: transparent; }
+  body { background: transparent; font-family: 'Courier New', Courier, monospace; }
 
-  #bob-chat-bubble {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 62px;
-    height: 62px;
-    background: var(--navy);
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 6px 20px rgba(27,42,74,0.4);
-    z-index: 9999;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  #bob-bubble {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 60px; height: 60px; border-radius: 4px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    z-index: 9999; background: var(--black);
+    border: 1px solid var(--green-dim);
+    box-shadow: 0 0 20px var(--green-glow), inset 0 0 20px rgba(0,255,65,0.03);
+    transition: transform 0.15s, box-shadow 0.2s;
+    animation: bubble-pulse 2s ease-in-out infinite;
+  }
+  @keyframes bubble-pulse {
+    0%,100% { box-shadow: 0 0 15px var(--green-glow); }
+    50% { box-shadow: 0 0 30px rgba(0,255,65,0.25), 0 0 60px rgba(0,255,65,0.08); }
+  }
+  #bob-bubble:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(0,255,65,0.3); }
+  #bob-bubble svg { width: 24px; height: 24px; fill: var(--green); }
+  .bubble-corner {
+    position: absolute; width: 6px; height: 6px;
+    border-color: var(--green-dim); border-style: solid;
+  }
+  .bubble-corner.tl { top: 2px; left: 2px; border-width: 1px 0 0 1px; }
+  .bubble-corner.tr { top: 2px; right: 2px; border-width: 1px 1px 0 0; }
+  .bubble-corner.bl { bottom: 2px; left: 2px; border-width: 0 0 1px 1px; }
+  .bubble-corner.br { bottom: 2px; right: 2px; border-width: 0 1px 1px 0; }
+
+  #bob-window {
+    position: fixed; bottom: 96px; right: 24px;
+    width: 440px; height: 640px; border-radius: 4px;
+    display: none; flex-direction: column; overflow: hidden;
+    z-index: 9998; background: var(--black);
+    border: 1px solid var(--green-dim);
+    box-shadow: 0 0 40px var(--green-glow), 0 0 80px rgba(0,255,65,0.04), inset 0 0 40px rgba(0,255,65,0.02);
+  }
+  #bob-window::before {
+    content: ''; position: absolute; top: -1px; left: -1px;
+    width: 16px; height: 16px;
+    border-top: 2px solid var(--green); border-left: 2px solid var(--green);
+    z-index: 20; pointer-events: none;
+    box-shadow: -2px -2px 8px rgba(0,255,65,0.4);
+  }
+  #bob-window::after {
+    content: ''; position: absolute; bottom: -1px; right: -1px;
+    width: 16px; height: 16px;
+    border-bottom: 2px solid var(--green); border-right: 2px solid var(--green);
+    z-index: 20; pointer-events: none;
+    box-shadow: 2px 2px 8px rgba(0,255,65,0.4);
+  }
+  .corner-br { position: absolute; bottom: -1px; left: -1px; width: 16px; height: 16px; border-bottom: 2px solid var(--green-dim); border-left: 2px solid var(--green-dim); z-index: 20; pointer-events: none; }
+  .corner-tr { position: absolute; top: -1px; right: -1px; width: 16px; height: 16px; border-top: 2px solid var(--green-dim); border-right: 2px solid var(--green-dim); z-index: 20; pointer-events: none; }
+
+  #bob-window.open { display: flex; animation: terminal-open 0.2s ease; }
+  @keyframes terminal-open {
+    from { opacity: 0; transform: translateY(10px) scaleY(0.95); }
+    to { opacity: 1; transform: translateY(0) scaleY(1); }
   }
 
-  #bob-chat-bubble:hover {
-    transform: scale(1.06);
-    box-shadow: 0 8px 26px rgba(27,42,74,0.55);
-  }
-
-  #bob-chat-bubble::before {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    border: 1.5px solid var(--accent);
-    opacity: 0;
-    animation: bob-pulse 2.6s ease-out infinite;
-  }
-
-  @keyframes bob-pulse {
-    0% { opacity: 0.55; transform: scale(0.92); }
-    70% { opacity: 0; transform: scale(1.18); }
-    100% { opacity: 0; transform: scale(1.18); }
-  }
-
-  #bob-chat-bubble svg { width: 26px; height: 26px; fill: var(--accent); position: relative; z-index: 1; }
-
-  #bob-chat-window {
-    position: fixed;
-    bottom: 102px;
-    right: 24px;
-    width: 400px;
-    height: 560px;
-    background: var(--paper);
-    border-radius: 18px;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 18px 50px rgba(27,42,74,0.22), 0 2px 8px rgba(27,42,74,0.1);
-    z-index: 9998;
-    border: 1px solid var(--line);
-  }
-
-  #bob-chat-window.open {
-    display: flex;
-    animation: bob-rise 0.28s cubic-bezier(0.16,1,0.3,1);
-  }
-
-  @keyframes bob-rise {
-    from { opacity: 0; transform: translateY(14px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+  .scanlines {
+    position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
+    border-radius: 4px;
   }
 
   .bob-header {
-    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
+    background: var(--darker); border-bottom: 1px solid var(--green-border);
+    padding: 0; flex-shrink: 0; z-index: 5; position: relative;
   }
+  .bob-titlebar {
+    padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(0,255,65,0.06);
+  }
+  .bob-titlebar-left { display: flex; align-items: center; gap: 8px; }
+  .term-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .term-dot.red { background: var(--red); box-shadow: 0 0 6px rgba(255,51,51,0.5); }
+  .term-dot.amber { background: var(--amber); box-shadow: 0 0 6px rgba(255,184,0,0.5); }
+  .term-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(0,255,65,0.5); animation: dot-pulse 2s ease-in-out infinite; }
+  @keyframes dot-pulse {
+    0%,100% { box-shadow: 0 0 4px rgba(0,255,65,0.5); }
+    50% { box-shadow: 0 0 10px rgba(0,255,65,0.8); }
+  }
+  .bob-title { font-size: 11px; color: var(--green-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: normal; }
+  .header-close {
+    background: none; border: 1px solid rgba(0,255,65,0.2);
+    color: var(--green-dim); width: 22px; height: 22px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; transition: all 0.15s; font-family: 'Courier New', monospace; border-radius: 2px;
+  }
+  .header-close:hover { border-color: var(--red); color: var(--red); box-shadow: 0 0 8px rgba(255,51,51,0.3); }
 
-  .bob-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--blue-light), var(--accent));
+  .bob-sysinfo {
+    padding: 6px 14px; font-size: 9.5px; color: var(--ink-soft); letter-spacing: 0.3px;
+    display: flex; justify-content: space-between;
   }
+  .sysinfo-right { color: rgba(0,255,65,0.3); }
 
-  .bob-header-text h3 {
-    font-family: 'Georgia', serif;
-    color: var(--accent);
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    display: flex;
-    align-items: center;
-    gap: 7px;
+  .bob-progress-wrap { background: rgba(0,255,65,0.05); height: 2px; flex-shrink: 0; }
+  .bob-progress-fill {
+    height: 100%; width: 100%; background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: progress-flicker 4s ease-in-out infinite;
   }
-
-  .bob-status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #6FCF97;
-    box-shadow: 0 0 0 2px rgba(111,207,151,0.25);
-    flex-shrink: 0;
+  @keyframes progress-flicker {
+    0%,100% { opacity: 1; } 50% { opacity: 0.7; } 75% { opacity: 1; }
   }
-
-  .bob-header-text p {
-    color: rgba(255,255,255,0.65);
-    font-size: 11.5px;
-    margin-top: 3px;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-  }
-
-  .bob-close {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: rgba(255,255,255,0.85);
-    font-size: 15px;
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s;
-    font-family: Arial, sans-serif;
-  }
-  .bob-close:hover { background: rgba(255,255,255,0.22); }
 
   .bob-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 18px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    background:
-      radial-gradient(circle at 100% 0%, rgba(27,42,74,0.03) 0%, transparent 55%),
-      var(--paper);
+    flex: 1; overflow-y: auto; padding: 12px 14px 8px;
+    display: flex; flex-direction: column; gap: 4px;
+    position: relative; z-index: 2; scroll-behavior: smooth;
   }
+  .bob-messages::-webkit-scrollbar { width: 4px; }
+  .bob-messages::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 0; }
+  .bob-messages::-webkit-scrollbar-track { background: var(--black); }
 
-  .bob-messages::-webkit-scrollbar { width: 6px; }
-  .bob-messages::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .bob-msg { font-size: 12.5px; line-height: 1.7; animation: line-appear 0.1s ease both; }
+  @keyframes line-appear { from { opacity: 0; } to { opacity: 1; } }
+  .bob-msg.bot { color: var(--ink); align-self: flex-start; width: 100%; }
+  .bob-msg.user { color: var(--amber); align-self: flex-start; width: 100%; }
+  .msg-prompt { color: var(--green-dim); margin-right: 6px; }
+  .msg-prefix-bot { color: var(--green-dim); font-size: 11px; display: block; margin-bottom: 2px; }
 
-  .bob-msg {
-    max-width: 85%;
-    padding: 11px 15px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.55;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    animation: bob-msg-in 0.22s ease;
+  .tw-cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--green); margin-left: 1px; vertical-align: middle;
+    animation: block-blink 0.8s step-end infinite;
   }
+  @keyframes block-blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 
-  @keyframes bob-msg-in {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .bob-msg.bot {
-    background: #ffffff;
-    color: var(--ink);
-    align-self: flex-start;
-    border: 1px solid var(--line);
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 2px rgba(27,42,74,0.06);
-  }
-
-  .bob-msg.user {
-    background: var(--navy);
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 4px;
-  }
-
-  .bob-typing {
-    align-self: flex-start;
-    background: #ffffff;
-    border: 1px solid var(--line);
-    padding: 13px 16px;
-    border-radius: 14px;
-    border-bottom-left-radius: 4px;
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-
-  .bob-typing span {
-    width: 6px; height: 6px;
-    background: var(--blue);
-    border-radius: 50%;
-    opacity: 0.35;
-    animation: bob-bounce 1.1s infinite ease-in-out;
-  }
-  .bob-typing span:nth-child(2) { animation-delay: 0.15s; }
-  .bob-typing span:nth-child(3) { animation-delay: 0.3s; }
-
-  @keyframes bob-bounce {
-    0%, 80%, 100% { transform: translateY(0); opacity: 0.35; }
-    40% { transform: translateY(-4px); opacity: 0.9; }
+  .bob-typing { color: var(--ink-soft); font-size: 12px; animation: line-appear 0.1s ease both; }
+  .typing-dots::after { content: ''; animation: dots 1.2s steps(4, end) infinite; }
+  @keyframes dots {
+    0%,20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%,100% { content: '...'; }
   }
 
   .bob-report-btn {
-    background: var(--accent);
-    color: var(--navy-dark);
-    border: none;
-    border-radius: 8px;
-    padding: 8px 13px;
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    transition: filter 0.15s;
+    background: none; color: var(--green-dim);
+    border: 1px solid var(--green-border);
+    padding: 4px 10px; font-size: 11px; cursor: pointer;
+    font-family: 'Courier New', monospace; letter-spacing: 0.3px;
+    margin-top: 6px; display: inline-block; transition: all 0.15s; border-radius: 2px;
   }
-  .bob-report-btn:hover { filter: brightness(1.08); }
+  .bob-report-btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 8px var(--green-glow); }
 
   .bob-input-area {
-    padding: 13px 14px;
-    border-top: 1px solid var(--line);
-    display: flex;
-    gap: 8px;
-    background: var(--paper);
+    padding: 8px 14px 12px; border-top: 1px solid var(--green-border);
+    background: var(--darker); flex-shrink: 0; position: relative; z-index: 5;
   }
-
+  .input-prompt-line {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9.5px; color: var(--ink-soft); margin-bottom: 6px; letter-spacing: 0.3px;
+  }
+  .prompt-ready { color: var(--green); animation: dot-pulse 1.5s ease-in-out infinite; }
+  .bob-input-row { display: flex; gap: 0; align-items: center; }
+  .input-prompt-char { color: var(--green); font-size: 13px; margin-right: 8px; flex-shrink: 0; }
   .bob-input-area input {
-    flex: 1;
-    background: #fff;
-    border: 1.5px solid var(--line);
-    border-radius: 22px;
-    padding: 11px 16px;
-    color: var(--ink);
-    font-size: 14px;
-    outline: none;
-    font-family: 'Helvetica Neue', Arial, sans-serif;
-    transition: border-color 0.15s;
+    flex: 1; background: none; border: none;
+    color: var(--green); font-size: 13px; outline: none;
+    font-family: 'Courier New', Courier, monospace; caret-color: var(--green);
   }
-  .bob-input-area input:focus { border-color: var(--blue); }
-  .bob-input-area input::placeholder { color: #A0AEC0; }
-
-  .bob-input-area button {
-    background: var(--navy);
-    border: none;
-    border-radius: 50%;
-    width: 42px;
-    height: 42px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.15s;
+  .bob-input-area input::placeholder { color: rgba(0,255,65,0.2); }
+  .send-btn {
+    background: none; border: 1px solid var(--green-border);
+    color: var(--green-dim); padding: 4px 10px; cursor: pointer;
+    font-family: 'Courier New', monospace; font-size: 11px; letter-spacing: 0.5px;
+    transition: all 0.15s; border-radius: 2px; flex-shrink: 0;
   }
-  .bob-input-area button:hover { background: var(--navy-dark); }
-  .bob-input-area button svg { width: 17px; height: 17px; fill: var(--accent); }
+  .send-btn:hover { background: var(--green-glow); border-color: var(--green); color: var(--green); box-shadow: 0 0 8px var(--green-glow); }
 </style>
 </head>
 <body>
 
-<div id="bob-chat-bubble" onclick="toggleBob()">
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-  </svg>
+<div id="bob-bubble" onclick="toggleBob()">
+  <div class="bubble-corner tl"></div>
+  <div class="bubble-corner tr"></div>
+  <div class="bubble-corner bl"></div>
+  <div class="bubble-corner br"></div>
+  <svg viewBox="0 0 24 24"><path d="M20 3H4v10l4 4h4v4l4-4h4V3zm-4 8h-8V9h8v2zm0-4H8V5h8v2z"/></svg>
 </div>
 
-<div id="bob-chat-window">
+<div id="bob-window">
+  <div class="corner-br"></div>
+  <div class="corner-tr"></div>
+  <div class="scanlines"></div>
+
   <div class="bob-header">
-    <div class="bob-header-text">
-      <h3><span class="bob-status-dot"></span>BOB</h3>
-      <p>MMRI Staff Only · Ask me about partners & projects</p>
+    <div class="bob-titlebar">
+      <div class="bob-titlebar-left">
+        <div class="term-dot red"></div>
+        <div class="term-dot amber"></div>
+        <div class="term-dot green"></div>
+        <span class="bob-title">BOB v2.0 — MMRI Internal Assistant</span>
+      </div>
+      <button class="header-close" onclick="toggleBob()">✕</button>
     </div>
-    <button class="bob-close" onclick="toggleBob()">✕</button>
+    <div class="bob-sysinfo">
+      <span>SESSION: STAFF-ONLY · ENCRYPTED · MMRI-SECURE</span>
+      <span class="sysinfo-right" id="bob-clock"></span>
+    </div>
+  </div>
+
+  <div class="bob-progress-wrap">
+    <div class="bob-progress-fill"></div>
   </div>
 
   <div class="bob-messages" id="bob-messages"></div>
 
   <div class="bob-input-area">
-    <input type="text" id="bob-input" placeholder="Ask about a partner, project, or team..." onkeydown="if(event.key==='Enter') sendBobMessage()" />
-    <button onclick="sendBobMessage()">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M2 21l21-9L2 3v7l15 2-15 2z"/>
-      </svg>
-    </button>
+    <div class="input-prompt-line">
+      <span class="prompt-ready">●</span>
+      <span>READY — type your query and press ENTER or RUN</span>
+    </div>
+    <div class="bob-input-row">
+      <span class="input-prompt-char">$</span>
+      <input type="text" id="bob-input" placeholder="query --mmri" onkeydown="if(event.key==='Enter')sendBobMessage()" />
+      <button class="send-btn" onclick="sendBobMessage()">[ RUN ]</button>
+    </div>
   </div>
 </div>
 
 <script>
   const API_URL = "https://mpal-chatbot.onrender.com";
-  let conversation = [];
-  let isOpen = false;
+  let conversation = [], isOpen = false;
+
+  function updateClock() {
+    const el = document.getElementById('bob-clock');
+    if (el) el.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+  setInterval(updateClock, 1000); updateClock();
 
   function toggleBob() {
     isOpen = !isOpen;
-    const win = document.getElementById('bob-chat-window');
+    const win = document.getElementById('bob-window');
     if (isOpen) {
       win.classList.add('open');
-      if (conversation.length === 0) {
-        addMessage("bot", "Hi! I'm BOB, your internal MMRI assistant. I can help you find info about partners, past projects, and internal documents.\n\nWhat would you like to know?");
-      }
+      if (conversation.length === 0) printBoot();
     } else {
       win.classList.remove('open');
     }
   }
 
-  function addMessage(role, text, showReport = false) {
+  function printBoot() {
+    const lines = [
+      'McMaster Manufacturing Research Institute',
+      'BOB v2.0 — Internal Knowledge Assistant',
+      '─────────────────────────────────────────',
+      'Loading knowledge base...        [  OK  ]',
+      'Loading project database...      [  OK  ]',
+      'Loading ETHOS conversations...   [  OK  ]',
+      'Loading workflow data...         [  OK  ]',
+      '─────────────────────────────────────────',
+      'Type your query below. Examples:',
+      '  > How many active projects?',
+      '  > What is the status of SKATE11?',
+      '  > What happens after Q Accept?',
+      '  > Who is the MSL lead?',
+      '',
+    ];
+    let i = 0;
+    function printLine() {
+      if (i < lines.length) {
+        addSystemLine(lines[i]); i++;
+        setTimeout(printLine, 60);
+      }
+    }
+    printLine();
+  }
+
+  function addSystemLine(text) {
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
-    div.className = `bob-msg ${role}`;
+    div.className = 'bob-msg bot';
+    div.innerHTML = `<span style="color:var(--ink-soft)">${text}</span>`;
+    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
+  }
 
-    let content = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
+  function typewriterMessage(text, onDone) {
+    const messages = document.getElementById('bob-messages');
+    const promptDiv = document.createElement('div');
+    promptDiv.className = 'bob-msg bot';
+    promptDiv.innerHTML = `<span class="msg-prefix-bot">BOB@mmri:~$ output</span>`;
+    messages.appendChild(promptDiv);
 
-    if (showReport) {
-      content += `<div style="margin-top:10px;">
-        <button class="bob-report-btn" onclick="downloadReport('${encodeURIComponent(text)}')">📄 Generate Report</button>
-      </div>`;
+    const div = document.createElement('div');
+    div.className = 'bob-msg bot';
+    const cursor = document.createElement('span');
+    cursor.className = 'tw-cursor'; div.appendChild(cursor);
+    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
+
+    let i = 0;
+    function type() {
+      if (i < text.length) {
+        const c = text[i];
+        if (c === '\n') { div.insertBefore(document.createElement('br'), cursor); }
+        else {
+          let last = null;
+          for (let j = div.childNodes.length - 1; j >= 0; j--) {
+            if (div.childNodes[j] !== cursor && div.childNodes[j].nodeType === 3) { last = div.childNodes[j]; break; }
+          }
+          if (!last) div.insertBefore(document.createTextNode(c), cursor);
+          else last.textContent += c;
+        }
+        i++; messages.scrollTop = messages.scrollHeight;
+        setTimeout(type, 10);
+      } else {
+        cursor.remove();
+        const doneDiv = document.createElement('div');
+        doneDiv.className = 'bob-msg bot';
+        doneDiv.innerHTML = `<span style="color:var(--ink-soft)">─────────────────────────── [DONE]</span>`;
+        messages.appendChild(doneDiv); messages.scrollTop = messages.scrollHeight;
+        if (onDone) onDone();
+      }
     }
+    type(); return div;
+  }
 
-    div.innerHTML = content;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+  function addUserMessage(text) {
+    const messages = document.getElementById('bob-messages');
+    const div = document.createElement('div');
+    div.className = 'bob-msg user';
+    div.innerHTML = `<span class="msg-prompt">$</span><span>${text}</span>`;
+    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
     return div;
   }
 
@@ -346,63 +352,57 @@
     const messages = document.getElementById('bob-messages');
     const div = document.createElement('div');
     div.className = 'bob-typing';
-    div.innerHTML = '<span></span><span></span><span></span>';
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+    div.innerHTML = `<span style="color:var(--ink-soft)">BOB@mmri:~$ processing<span class="typing-dots"></span></span>`;
+    messages.appendChild(div); messages.scrollTop = messages.scrollHeight;
     return div;
   }
 
   async function sendBobMessage() {
     const input = document.getElementById('bob-input');
-    const text = input.value.trim();
-    if (!text) return;
+    const text = input.value.trim(); if (!text) return;
     input.value = '';
-
-    addMessage('user', text);
+    addUserMessage(text);
     conversation.push({ role: 'user', content: text });
-
     const typing = addTyping();
-
     try {
       const response = await fetch(`${API_URL}/api/bob`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: conversation })
       });
       const data = await response.json();
       typing.remove();
       const reply = data.response;
-      addMessage('bot', reply, true);
+      typewriterMessage(reply, () => {
+        const lastBot = document.querySelector('.bob-msg.bot:last-of-type');
+        if (lastBot) {
+          const btn = document.createElement('button');
+          btn.className = 'bob-report-btn';
+          btn.textContent = '[ EXPORT REPORT ]';
+          btn.onclick = () => downloadReport(reply);
+          lastBot.appendChild(btn);
+        }
+      });
       conversation.push({ role: 'assistant', content: reply });
     } catch (err) {
       typing.remove();
-      addMessage('bot', 'Sorry, I had trouble connecting. Please try again.');
+      addSystemLine('ERROR: Connection failed. Retry or contact system administrator.');
     }
   }
 
-  async function downloadReport(encodedResponse) {
-    const bobResponse = decodeURIComponent(encodedResponse);
+  async function downloadReport(bobResponse) {
     const conversationText = conversation.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
-
     try {
       const response = await fetch(`${API_URL}/api/report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bob_response: bobResponse,
-          conversation_summary: conversationText
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bob_response: bobResponse, conversation_summary: conversationText })
       });
-
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `MMRI_Report_${Date.now()}.pdf`;
-      a.click();
+      a.href = url; a.download = `MMRI_Report_${Date.now()}.pdf`; a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      addMessage('bot', 'Sorry, could not generate the report. Please try again.');
+      addSystemLine('ERROR: Report generation failed.');
     }
   }
 </script>
